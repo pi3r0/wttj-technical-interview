@@ -1,5 +1,7 @@
 import { useQuery } from 'react-query'
-import { getCandidates, getJob, getJobs } from '../api'
+import { getJobs } from '../api'
+import { JobRepository } from '../api/JobRepository'
+import { CandidateRepository } from '../api/CandidateRepository'
 
 export const useJobs = () => {
   const { isLoading, error, data } = useQuery({
@@ -11,9 +13,11 @@ export const useJobs = () => {
 }
 
 export const useJob = (jobId?: string) => {
+  const jobRepository = new JobRepository();
+
   const { isLoading, error, data } = useQuery({
     queryKey: ['job', jobId],
-    queryFn: () => getJob(jobId),
+    queryFn: () => jobRepository.getOne(jobId ?? '1'),
     enabled: !!jobId,
   })
 
@@ -21,9 +25,11 @@ export const useJob = (jobId?: string) => {
 }
 
 export const useCandidates = (jobId?: string) => {
+  const candidateRepository = new CandidateRepository();
+
   const { isLoading, error, data } = useQuery({
     queryKey: ['candidates', jobId],
-    queryFn: () => getCandidates(jobId),
+    queryFn: () => candidateRepository.getAllForJobId(jobId ?? '1'),
     enabled: !!jobId,
   })
 

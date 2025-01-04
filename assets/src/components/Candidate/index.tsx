@@ -1,5 +1,5 @@
 import { Card } from '@welcome-ui/card'
-import { Candidate } from '../../api'
+import { Candidate } from '../../interfaces/Candidate'
 
 function CandidateCard({ candidate }: { candidate: Candidate }) {
   return (
