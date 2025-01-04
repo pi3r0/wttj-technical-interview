@@ -19,8 +19,9 @@ export class CandidateRepository implements CandidateRepositoryPort {
         return this.httpClient.get<Candidate>(`${baseURL}/jobs/${jobId}/candidates/${candidateId}`);
     };
 
-    updateStatus(jobId: string, candidateId: string, newStatus: 'new' | 'interview' | 'hired' | 'rejected') {
-        return this.httpClient.put<Candidate>(`${baseURL}/jobs/${jobId}/candidates/${candidateId}`, newStatus);
+    updateStatus(jobId: string, candidateId: string, newStatus: 'new' | 'interview' | 'hired' | 'rejected')
+    {
+        return this.httpClient.put<Candidate>(`${baseURL}/jobs/${jobId}/candidates/${candidateId}`, { 'candidate[status]': newStatus });
     };
     
 }
