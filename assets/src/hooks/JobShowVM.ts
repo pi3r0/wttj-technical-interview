@@ -59,7 +59,7 @@ export const useJobShowVM = () => {
     const jobRepository = new JobRepository();
     const candidateRepository = new CandidateRepository();
 
-    const job = useRef<Job>({ id: '-1', name: 'Not A Job' });
+    const job = useRef<Job | null>(null);
     const candidates = useRef<Candidate[]>([]);
     const [uiModel, setUIModel] = useState<JobShowUIModel>(initialState);
 
@@ -88,6 +88,29 @@ export const useJobShowVM = () => {
         }
 
         updateUIModel()
+    }
+
+    const updateCandidateStatus = async (candidateId: number, newStatus: Statuses) => {
+        // Early return if job not exist
+        if (!job.current) { return; }
+
+        const candidate = candidates.current.find((candidate: Candidate) => candidate.id === candidateId);
+        if (!candidate) { return; }
+
+        if (candidate.status === newStatus) {
+            console.log('SAME');
+            return;
+        }
+
+        try {
+            await candidateRepository.updateStatus(job.current.id, `${candidate.id}`, newStatus);
+            candidate.status = newStatus;
+            updateUIModel();
+        } catch (error){
+            console.error(error)
+            setUIModel({ ...uiModel, hasError: true, error: 'Error: status cannot be changed' });
+        }
+
     }
 
     const updateUIModel = () => {
@@ -139,10 +162,10 @@ export const useJobShowVM = () => {
             isLoading: false,
             hasError: false,
             error: '',
-            jobName: job.current.name,
+            jobName: job.current?.name ?? 'Not loaded',
             columns: sortedCandidates,
         })
     }
 
-    return { load, uiModel };
+    return { load, updateCandidateStatus, uiModel };
 }
