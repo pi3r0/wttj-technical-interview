@@ -1,48 +1,54 @@
 import { useParams } from 'react-router-dom'
-import { useJob, useCandidates } from '../../hooks'
+import {useEffect, useState, type DragEvent } from 'react';
+import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
-import { useMemo } from 'react'
-import { Candidate } from '../../api'
+import { Candidate, Statuses } from '../../interfaces/Candidate'
 import CandidateCard from '../../components/Candidate'
 import { Badge } from '@welcome-ui/badge'
-
-type Statuses = 'new' | 'interview' | 'hired' | 'rejected'
-const COLUMNS: Statuses[] = ['new', 'interview', 'hired', 'rejected']
-
-interface SortedCandidates {
-  new?: Candidate[]
-  interview?: Candidate[]
-  hired?: Candidate[]
-  rejected?: Candidate[]
-}
+import './style.scss'
 
 function JobShow() {
   const { jobId } = useParams()
-  const { job } = useJob(jobId)
-  const { candidates } = useCandidates(jobId)
+  const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null);
 
-  const sortedCandidates = useMemo(() => {
-    if (!candidates) return {}
+  const viewModel = useJobShowVM();
 
-    return candidates.reduce<SortedCandidates>((acc, c: Candidate) => {
-      acc[c.status] = [...(acc[c.status] || []), c].sort((a, b) => a.position - b.position)
-      return acc
-    }, {})
-  }, [candidates])
+  useEffect(() => {
+    viewModel.load(jobId);
+  }, [jobId]);
+
+  const handleDragStart = (candidate: Candidate) => {
+      setDraggedCandidate(candidate);
+  };
+
+  const handleDragOver = (e: DragEvent): void => {
+      e.preventDefault();
+  };
+
+  const handleDrop = (e: DragEvent, targetColumnStatus: Statuses) => {
+    e.preventDefault();
+    if (!draggedCandidate) {
+        return;
+    }
+    
+    viewModel.updateCandidateStatus(draggedCandidate.id, targetColumnStatus);
+  };
 
   return (
     <>
       <Box backgroundColor="neutral-70" p={20} alignItems="center">
         <Text variant="h5" color="white" m={0}>
-          {job?.name}
+          {viewModel.uiModel.jobName}
         </Text>
       </Box>
-
       <Box p={20}>
+          { viewModel.uiModel.isLoading ? (<div>Loading...</div>) : null }
+
+          { viewModel.uiModel.hasError ? (<div className="error" ><span> Error: { viewModel.uiModel.error }</span></div>) : null }
         <Flex gap={10}>
-          {COLUMNS.map(column => (
+          {viewModel.uiModel.columns.map(column => (
             <Box
               w={300}
               border={1}
@@ -50,6 +56,9 @@ function JobShow() {
               borderColor="neutral-30"
               borderRadius="md"
               overflow="hidden"
+              key={column.id}
+              onDragOver={(e) => handleDragOver(e)}
+              onDrop={(e) => handleDrop(e, column.id)}
             >
               <Flex
                 p={10}
@@ -59,13 +68,19 @@ function JobShow() {
                 justify="space-between"
               >
                 <Text color="black" m={0} textTransform="capitalize">
-                  {column}
+                  {column.name}
                 </Text>
-                <Badge>{(sortedCandidates[column] || []).length}</Badge>
+                <Badge>{column.candidatesCount}</Badge>
               </Flex>
-              <Flex direction="column" p={10} pb={0}>
-                {sortedCandidates[column]?.map((candidate: Candidate) => (
-                  <CandidateCard candidate={candidate} />
+              <Flex
+                  direction="column"
+                  p={10}
+                  pb={0}>
+                {column.candidates.map((candidate: Candidate) => (
+                  <CandidateCard
+                      candidate={candidate} key={candidate.id}
+                      handleDragStart={handleDragStart}
+                  />
                 ))}
               </Flex>
             </Box>
