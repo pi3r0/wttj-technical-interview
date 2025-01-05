@@ -3,11 +3,13 @@
 1. [Description](#description)
 2. [Requirements](#requirements)
 3. [Getting Started](#getting-started)
-    - Setup Database
-    - Run Phoenix server
-    - Run React app
+   1. Setup Database
+   2. Run Phoenix server
+   3. Run React app
 4. [Tests](#tests)
-5. [Learn more](#learn-more)
+5. [Works](#works)
+   1. Basic Functionality
+6. [Learn more](#learn-more)
 
 ## Description
 Job technical interview test for a Engineer manager hands on at welcome to the jungle.\
@@ -75,7 +77,15 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
 ## Works 
-All requirements will be detailed in separate pull request. 
+All requirements will be detailed in separate pull request.
+
+### Basic Functionality
+This task will separate in two user stories, you can follow detail on each Pull request
+
+| US #id                                                        | Name            | Desc                                                                                               | Requirements                                                                                           |
+|---------------------------------------------------------------|-----------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [1](https://github.com/pi3r0/wttj-technical-interview/pull/1) | Update status   | As User, I could update the candidate status by drag and drop the card into another status column  | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
+| [2](https://github.com/pi3r0/wttj-technical-interview/pull/3) | Update priority | As User, I could update the candidate priority by drag and drop the card into same status column   | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
 
 ## Learn more
 
