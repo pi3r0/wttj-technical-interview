@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { useEffect, useState, type DragEvent } from 'react'
+import { useState, type DragEvent } from 'react'
 import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'

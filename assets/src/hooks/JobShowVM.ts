@@ -1,13 +1,9 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { isRejected, isFulfilled } from '../utils/promise.ts'
 import { CandidateRepository } from '../api/CandidateRepository'
 import { JobRepository } from '../api/JobRepository'
 import { Candidate, Statuses } from '../interfaces/Candidate'
-
-const isRejected = (input: PromiseSettledResult<unknown>): input is PromiseRejectedResult =>
-  input.status === 'rejected'
-
-const isFulfilled = <T>(input: PromiseSettledResult<T>): input is PromiseFulfilledResult<T> =>
-  input.status === 'fulfilled'
+import { http, HttpClientPort } from '../drivers/http.ts'
 
 interface Column {
   id: Statuses
@@ -37,10 +33,7 @@ const initialState: JobShowUIModel = {
   jobName: 'Not a Job',
 }
 
-export const useJobShowVM = (jobId?: string) => {
-  const jobRepository = new JobRepository()
-  const candidateRepository = new CandidateRepository()
-
+export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) => {
   const [uiModel, setUIModel] = useState<JobShowUIModel>(initialState)
   const [candidates, setCandidates] = useState<Candidate[]>([])
 
@@ -52,6 +45,9 @@ export const useJobShowVM = (jobId?: string) => {
         setUIModel(prev => ({ ...prev, isLoading: false, hasError: true, error: 'Job ID missing' }))
         return
       }
+
+      const jobRepository = new JobRepository(httpClient)
+      const candidateRepository = new CandidateRepository(httpClient)
 
       const [job, candidates] = await Promise.allSettled([
         jobRepository.getOne(jobId),
@@ -152,13 +148,14 @@ export const useJobShowVM = (jobId?: string) => {
         console.log('SAME')
         return
       }
-
+      setUIModel({ ...uiModel, hasError: false, error: '' })
       setCandidates(prevCandidates =>
         prevCandidates.map(candidate =>
           candidate.id === candidateId ? { ...candidate, status: newStatus } : candidate
         )
       )
 
+      const candidateRepository = new CandidateRepository(httpClient)
       await candidateRepository.updateStatus(jobId, `${candidateId}`, newStatus)
     } catch (error) {
       console.error(error)
