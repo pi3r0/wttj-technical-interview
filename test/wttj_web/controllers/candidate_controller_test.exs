@@ -7,7 +7,7 @@ defmodule WttjWeb.CandidateControllerTest do
   alias Wttj.Candidates.Candidate
 
   @update_attrs %{
-    position: 43,
+    position: 43.0,
     status: :interview
   }
   @invalid_attrs %{position: nil, status: nil, email: nil}
@@ -42,7 +42,7 @@ defmodule WttjWeb.CandidateControllerTest do
       assert %{
                "id" => ^id,
                "email" => ^email,
-               "position" => 43,
+               "position" => 43.0,
                "status" => "interview"
              } = json_response(conn, 200)["data"]
     end
