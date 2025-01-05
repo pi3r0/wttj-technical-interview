@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { useEffect, useState, type DragEvent } from 'react'
+import { useState, type DragEvent } from 'react'
 import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
@@ -11,58 +11,68 @@ import './style.scss'
 
 function JobShow() {
   const { jobId } = useParams()
+
   const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null)
+  const [draggedOverColumnId, setDraggedOverColumnId] = useState<string | null>(null)
+  const [draggedOverRowId, setDraggedOverRowId] = useState<number | null>(null)
 
-  const viewModel = useJobShowVM()
-
-  useEffect(() => {
-    viewModel.load(jobId)
-  }, [jobId])
+  const { jobName, isLoading, hasError, error, groupedCandidates, updateCandidateStatus } =
+    useJobShowVM(jobId)
 
   const handleDragStart = (candidate: Candidate) => {
     setDraggedCandidate(candidate)
   }
 
-  const handleDragOver = (e: DragEvent): void => {
+  const handleDragOver = (e: DragEvent, columnId: string, rowId: number): void => {
     e.preventDefault()
+    setDraggedOverColumnId(columnId)
+    setDraggedOverRowId(rowId)
   }
 
-  const handleDrop = (e: DragEvent, targetColumnStatus: Statuses) => {
+  const handleDragEnd = (e: DragEvent): void => {
+    e.preventDefault()
+    setDraggedCandidate(null)
+    setDraggedOverColumnId(null)
+    setDraggedOverRowId(null)
+  }
+
+  const handleDrop = async (e: DragEvent, targetColumnStatus: Statuses, targetPosition: number) => {
     e.preventDefault()
     if (!draggedCandidate) {
       return
     }
 
-    viewModel.updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+    await updateCandidateStatus(draggedCandidate.id, targetColumnStatus, targetPosition)
+    setDraggedCandidate(null)
+    setDraggedOverColumnId(null)
+    setDraggedOverRowId(null)
   }
 
   return (
     <>
       <Box backgroundColor="neutral-70" p={20} alignItems="center">
         <Text variant="h5" color="white" m={0}>
-          {viewModel.uiModel.jobName}
+          {jobName}
         </Text>
       </Box>
       <Box p={20}>
-        {viewModel.uiModel.isLoading ? <div>Loading...</div> : null}
+        {isLoading ? <div>Loading...</div> : null}
 
-        {viewModel.uiModel.hasError ? (
+        {hasError ? (
           <div className="error">
-            <span> Error: {viewModel.uiModel.error}</span>
+            <span> Error: {error}</span>
           </div>
         ) : null}
         <Flex gap={10}>
-          {viewModel.uiModel.columns.map(column => (
+          {groupedCandidates.map(column => (
             <Box
               w={300}
               border={1}
               backgroundColor="white"
-              borderColor="neutral-30"
+              borderColor={draggedOverColumnId === column.id ? 'bg-blue-50' : 'neutral-30'}
               borderRadius="md"
               overflow="hidden"
               key={column.id}
-              onDragOver={e => handleDragOver(e)}
-              onDrop={e => handleDrop(e, column.id)}
             >
               <Flex
                 p={10}
@@ -76,14 +86,29 @@ function JobShow() {
                 </Text>
                 <Badge>{column.candidatesCount}</Badge>
               </Flex>
-              <Flex direction="column" p={10} pb={0}>
-                {column.candidates.map((candidate: Candidate) => (
-                  <CandidateCard
-                    candidate={candidate}
-                    key={candidate.id}
-                    handleDragStart={handleDragStart}
-                  />
+              <Flex direction="column" p={10} pb={0} backgroundColor="white" className="column">
+                {column.candidates.map((candidate: Candidate, index: number) => (
+                  <Flex direction="column" gap={4} key={candidate.id}>
+                    <CandidateCard
+                      candidate={candidate}
+                      cardIndex={index}
+                      isDraggedOver={
+                        draggedCandidate?.id !== candidate.id &&
+                        draggedOverRowId === index &&
+                        draggedOverColumnId === column.id
+                      }
+                      handleDragOver={handleDragOver}
+                      handleDrop={handleDrop}
+                      handleDragStart={handleDragStart}
+                      handleDragEnd={handleDragEnd}
+                    />
+                  </Flex>
                 ))}
+                <div
+                  className={`column-end-drop-area ${draggedOverColumnId === column.id && draggedOverRowId === column.candidatesCount ? 'highlighted' : ''}`}
+                  onDrop={e => handleDrop(e, column.id, column.candidatesCount)}
+                  onDragOver={e => handleDragOver(e, column.id, column.candidatesCount)}
+                />
               </Flex>
             </Box>
           ))}

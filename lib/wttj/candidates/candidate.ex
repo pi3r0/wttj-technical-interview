@@ -3,7 +3,7 @@ defmodule Wttj.Candidates.Candidate do
   import Ecto.Changeset
 
   schema "candidates" do
-    field :position, :integer
+    field :position, :float
     field :status, Ecto.Enum, values: [:new, :interview, :rejected, :hired], default: :new
     field :email, :string
     field :job_id, :id

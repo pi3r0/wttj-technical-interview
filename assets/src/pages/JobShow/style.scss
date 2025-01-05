@@ -3,3 +3,22 @@
   color: red;
   font-size: 30px;
 }
+
+.column {
+  height: 100%;
+  gap: 4px;
+}
+
+.column-end-drop-area {
+  height: 64px;
+  border-radius: 8px;
+  border-color: inherit;
+  background-color: inherit;
+
+  &.highlighted {
+    background-color: #add8e64c;
+    border-color: #add8e6;
+    height: 64px;
+    padding-bottom: 8px;
+  }
+}

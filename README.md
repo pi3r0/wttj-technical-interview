@@ -82,10 +82,10 @@ All requirements will be detailed in separate pull request.
 ### Basic Functionality
 This task will separate in two user stories, you can follow detail on each Pull request
 
-| US #id  | Name            | Desc                                                                                               | Requirements                                                                                           |
-|---------|-----------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| [1](https://github.com/pi3r0/wttj-technical-interview/pull/1)   | Update status   | As User, I could update the candidate status by drag and drop the card into another status column  | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
-| [2]()   | Update priority | As User, I could update the candidate priority by drag and drop the card into same status column   | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
+| US #id                                                        | Name            | Desc                                                                                               | Requirements                                                                                           |
+|---------------------------------------------------------------|-----------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [1](https://github.com/pi3r0/wttj-technical-interview/pull/1) | Update status   | As User, I could update the candidate status by drag and drop the card into another status column  | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
+| [2](https://github.com/pi3r0/wttj-technical-interview/pull/3) | Update priority | As User, I could update the candidate priority by drag and drop the card into same status column   | - stored and saved updates (<b>Must Have</b>)<br/>- Highlighted card destination (<b>Nice to have</b>) |
 
 ## Learn more
 
