@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { isRejected, isFulfilled } from '../utils/promise.ts'
 import { CandidateRepository } from '../api/CandidateRepository'
 import { JobRepository } from '../api/JobRepository'
@@ -12,39 +12,52 @@ interface Column {
   candidates: Candidate[]
 }
 
-const statusesToPosition: Record<Statuses, number> = {
+interface JobShowState {
+  isLoading: boolean
+  error: string | null
+  job: {
+    id: string
+    name: string
+  } | null
+  candidates: Candidate[]
+}
+
+const INITIAL_STATE: JobShowState = {
+  isLoading: true,
+  error: null,
+  job: null,
+  candidates: [],
+}
+
+const COLUMN_DEFINITIONS: Column[] = [
+  { id: 'new', name: 'New', candidatesCount: 0, candidates: [] },
+  { id: 'interview', name: 'Interview', candidatesCount: 0, candidates: [] },
+  { id: 'hired', name: 'Hired', candidatesCount: 0, candidates: [] },
+  { id: 'rejected', name: 'Rejected', candidatesCount: 0, candidates: [] },
+]
+
+const STATUS_POSITIONS: Record<Statuses, number> = {
   new: 0,
   interview: 1,
   hired: 2,
   rejected: 3,
 }
 
-interface JobShowUIModel {
-  isLoading: boolean
-  hasError: boolean
-  error: string
-  jobName: string
-}
-
-const initialState: JobShowUIModel = {
-  isLoading: true,
-  hasError: false,
-  error: '',
-  jobName: 'Not a Job',
-}
-
 export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) => {
-  const [uiModel, setUIModel] = useState<JobShowUIModel>(initialState)
-  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [state, setState] = useState<JobShowState>(INITIAL_STATE)
 
   useEffect(() => {
-    const fetch = async (jobId?: string) => {
-      setUIModel({ ...initialState })
+    if (!jobId) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Job ID is required',
+      }))
+      return
+    }
 
-      if (!jobId) {
-        setUIModel(prev => ({ ...prev, isLoading: false, hasError: true, error: 'Job ID missing' }))
-        return
-      }
+    const fetch = async (jobId: string) => {
+      setState(prevState => ({ ...prevState, isLoading: true, error: null }))
 
       const jobRepository = new JobRepository(httpClient)
       const candidateRepository = new CandidateRepository(httpClient)
@@ -54,119 +67,140 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
         candidateRepository.getAllForJobId(jobId),
       ])
 
-      setUIModel(prevUIModel => ({ ...prevUIModel, isLoading: false }))
+      setState(prevState => ({ ...prevState, isLoading: false }))
       if (isRejected(job) || isRejected(candidates)) {
-        console.log(job)
-        console.log(candidates)
-        setUIModel(prevUIModel => ({
-          ...prevUIModel,
-          hasError: true,
+        setState(prevState => ({
+          ...prevState,
           error: isRejected(job)
             ? `Job ${jobId} not found`
             : isRejected(candidates)
-              ? `Candidates for job ${jobId} can't be retreive`
-              : '',
+              ? `Candidates for job ${jobId} can't be retrieve`
+              : 'Unexpected error',
         }))
         return
       }
 
       if (isFulfilled(job) && isFulfilled(candidates)) {
-        setUIModel(prevUIModel => ({
-          ...prevUIModel,
-          hasError: false,
-          error: '',
-          jobName: job.value.name,
+        setState(prevState => ({
+          ...prevState,
+          error: null,
+          job: job.value,
+          candidates: candidates.value,
         }))
-        setCandidates(candidates.value)
       }
     }
     fetch(jobId).then()
-  }, [jobId])
+  }, [jobId, httpClient])
 
   const groupedCandidates = useMemo(() => {
-    return candidates.reduce<Column[]>(
-      (acc, curr) => {
-        const statusIndex = statusesToPosition[curr.status] ?? 4
-        if (!acc[statusIndex]) {
-          acc[statusIndex] = {
-            id: curr.status,
-            name: curr.status,
-            candidatesCount: 0,
-            candidates: [],
-          }
-        }
+    const columns = [...COLUMN_DEFINITIONS]
+    columns.forEach(column => {
+      column.candidates = []
+      column.candidatesCount = column.candidates.length
+    })
 
-        acc[statusIndex].candidates = [...acc[statusIndex].candidates, curr].sort(
-          (a, b) => a.position - b.position
-        )
-        acc[statusIndex].candidatesCount = acc[statusIndex].candidates.length
+    // assign candidates to right column
+    state.candidates.forEach(candidate => {
+      const statusIndex = STATUS_POSITIONS[candidate.status] ?? -1
+      if (statusIndex === -1) {
+        throw new Error(`Status ${candidate.status} not handled right now`)
+      }
 
-        return acc
-      },
-      [
-        {
-          id: 'new',
-          name: 'new',
-          candidatesCount: 0,
-          candidates: [],
-        },
-        {
-          id: 'interview',
-          name: 'interview',
-          candidatesCount: 0,
-          candidates: [],
-        },
-        {
-          id: 'hired',
-          name: 'hired',
-          candidatesCount: 0,
-          candidates: [],
-        },
-        {
-          id: 'rejected',
-          name: 'rejected',
-          candidatesCount: 0,
-          candidates: [],
-        },
-      ]
-    )
-  }, [candidates])
+      const column = columns[statusIndex]
+      column.candidates.push(candidate)
+    })
 
-  const updateCandidateStatus = async (candidateId: number, newStatus: Statuses) => {
+    // sort and count
+    columns.forEach(column => {
+      column.candidates.sort((a, b) => a.position - b.position)
+      column.candidatesCount = column.candidates.length
+    })
+
+    return columns
+  }, [state.candidates])
+
+  const calculateNewPosition = useCallback(
+    (targetIndex: number, candidatesInColumn: Candidate[]): number => {
+      if (candidatesInColumn.length === 0) return 1000
+
+      const prevPosition =
+        targetIndex > 0 ? (candidatesInColumn[targetIndex - 1]?.position ?? 0) : 0
+
+      const nextPosition = candidatesInColumn[targetIndex]?.position
+
+      if (!nextPosition) return prevPosition + 1000
+      return prevPosition + (nextPosition - prevPosition) / 2
+    },
+    []
+  )
+
+  const updateCandidateStatus = async (
+    candidateId: number,
+    newStatus: Statuses,
+    newIndex: number
+  ) => {
     // Early return if job not exist
-    if (!jobId) {
+    if (!state.job) {
+      throw new Error('Job ID is required')
+    }
+
+    const oldCandidate = state.candidates.find(
+      (candidate: Candidate) => candidate.id === candidateId
+    )
+    if (!oldCandidate) {
+      throw new Error(`Candidate ${candidateId} not found on the list`)
+    }
+
+    const { candidates: candidatesInTargetedColumn } =
+      groupedCandidates[STATUS_POSITIONS[newStatus]]
+
+    // Same state as before, do nothing
+    if (
+      candidatesInTargetedColumn[newIndex]?.id === oldCandidate.id &&
+      oldCandidate.status === newStatus
+    ) {
       return
     }
 
-    const oldCandidate = candidates.find((candidate: Candidate) => candidate.id === candidateId)
-    if (!oldCandidate) {
-      return
-    }
+    const newPosition = calculateNewPosition(newIndex, candidatesInTargetedColumn)
 
     try {
-      if (oldCandidate.status === newStatus) {
-        console.log('SAME')
-        return
-      }
-      setUIModel({ ...uiModel, hasError: false, error: '' })
-      setCandidates(prevCandidates =>
-        prevCandidates.map(candidate =>
-          candidate.id === candidateId ? { ...candidate, status: newStatus } : candidate
-        )
-      )
+      setState(prevState => ({
+        ...prevState,
+        error: null,
+        candidates: prevState.candidates.map(candidate =>
+          candidate.id === candidateId
+            ? { ...candidate, status: newStatus, position: newPosition }
+            : candidate
+        ),
+      }))
 
       const candidateRepository = new CandidateRepository(httpClient)
-      await candidateRepository.updateStatus(jobId, `${candidateId}`, newStatus)
-    } catch (error) {
-      console.error(error)
-      setCandidates(prevCandidates =>
-        prevCandidates.map(candidate =>
-          candidate.id === candidateId ? { ...candidate, status: oldCandidate.status } : candidate
-        )
+      await candidateRepository.updateCandidate(
+        state.job.id,
+        `${candidateId}`,
+        newStatus,
+        newPosition
       )
-      setUIModel({ ...uiModel, hasError: true, error: 'Error: status cannot be changed' })
+    } catch {
+      setState(prevState => ({
+        ...prevState,
+        error: 'Error: status cannot be changed',
+        candidates: prevState.candidates.map(candidate =>
+          candidate.id === candidateId
+            ? { ...candidate, status: oldCandidate.status, position: oldCandidate.position }
+            : candidate
+        ),
+      }))
     }
   }
 
-  return { ...uiModel, groupedCandidates, updateCandidateStatus }
+  return {
+    isLoading: state.isLoading,
+    hasError: !!state.error,
+    error: state.error ?? '',
+    jobName: state.job?.name ?? 'Not Found',
+    groupedCandidates,
+    updateCandidateStatus,
+  }
 }

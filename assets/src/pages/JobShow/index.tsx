@@ -11,8 +11,10 @@ import './style.scss'
 
 function JobShow() {
   const { jobId } = useParams()
+
   const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null)
   const [draggedOverColumnId, setDraggedOverColumnId] = useState<string | null>(null)
+  const [draggedOverRowId, setDraggedOverRowId] = useState<number | null>(null)
 
   const { jobName, isLoading, hasError, error, groupedCandidates, updateCandidateStatus } =
     useJobShowVM(jobId)
@@ -21,20 +23,29 @@ function JobShow() {
     setDraggedCandidate(candidate)
   }
 
-  const handleDragOver = (e: DragEvent, columnId: string): void => {
+  const handleDragOver = (e: DragEvent, columnId: string, rowId: number): void => {
     e.preventDefault()
     setDraggedOverColumnId(columnId)
+    setDraggedOverRowId(rowId)
   }
 
-  const handleDrop = async (e: DragEvent, targetColumnStatus: Statuses) => {
+  const handleDragEnd = (e: DragEvent): void => {
+    e.preventDefault()
+    setDraggedCandidate(null)
+    setDraggedOverColumnId(null)
+    setDraggedOverRowId(null)
+  }
+
+  const handleDrop = async (e: DragEvent, targetColumnStatus: Statuses, targetPosition: number) => {
     e.preventDefault()
     if (!draggedCandidate) {
       return
     }
 
-    await updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+    await updateCandidateStatus(draggedCandidate.id, targetColumnStatus, targetPosition)
     setDraggedCandidate(null)
     setDraggedOverColumnId(null)
+    setDraggedOverRowId(null)
   }
 
   return (
@@ -75,22 +86,29 @@ function JobShow() {
                 </Text>
                 <Badge>{column.candidatesCount}</Badge>
               </Flex>
-              <Flex
-                direction="column"
-                onDragOver={e => handleDragOver(e, column.id)}
-                onDrop={e => handleDrop(e, column.id)}
-                p={10}
-                pb={0}
-                backgroundColor="white"
-                className="column"
-              >
-                {column.candidates.map((candidate: Candidate) => (
-                  <CandidateCard
-                    candidate={candidate}
-                    key={candidate.id}
-                    handleDragStart={handleDragStart}
-                  />
+              <Flex direction="column" p={10} pb={0} backgroundColor="white" className="column">
+                {column.candidates.map((candidate: Candidate, index: number) => (
+                  <Flex direction="column" gap={4} key={candidate.id}>
+                    <CandidateCard
+                      candidate={candidate}
+                      cardIndex={index}
+                      isDraggedOver={
+                        draggedCandidate?.id !== candidate.id &&
+                        draggedOverRowId === index &&
+                        draggedOverColumnId === column.id
+                      }
+                      handleDragOver={handleDragOver}
+                      handleDrop={handleDrop}
+                      handleDragStart={handleDragStart}
+                      handleDragEnd={handleDragEnd}
+                    />
+                  </Flex>
                 ))}
+                <div
+                  className={`column-end-drop-area ${draggedOverColumnId === column.id && draggedOverRowId === column.candidatesCount ? 'highlighted' : ''}`}
+                  onDrop={e => handleDrop(e, column.id, column.candidatesCount)}
+                  onDragOver={e => handleDragOver(e, column.id, column.candidatesCount)}
+                />
               </Flex>
             </Box>
           ))}

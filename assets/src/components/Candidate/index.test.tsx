@@ -6,6 +6,16 @@ import CandidateCard from '../../components/Candidate'
 
 test('renders candidate email', () => {
   const candidate: Candidate = { id: 10, email: 'test@example.com', position: 1, status: 'new' }
-  const { getByText } = render(<CandidateCard candidate={candidate} handleDragStart={() => {}} />)
+  const { getByText } = render(
+    <CandidateCard
+      candidate={candidate}
+      cardIndex={0}
+      isDraggedOver={false}
+      handleDrop={() => {}}
+      handleDragOver={() => {}}
+      handleDragStart={() => {}}
+      handleDragEnd={() => {}}
+    />
+  )
   expect(getByText('test@example.com')).toBeInTheDocument()
 })
