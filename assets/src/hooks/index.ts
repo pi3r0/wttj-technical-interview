@@ -13,7 +13,7 @@ export const useJobs = () => {
 }
 
 export const useJob = (jobId?: string) => {
-  const jobRepository = new JobRepository();
+  const jobRepository = new JobRepository()
 
   const { isLoading, error, data } = useQuery({
     queryKey: ['job', jobId],
@@ -25,7 +25,7 @@ export const useJob = (jobId?: string) => {
 }
 
 export const useCandidates = (jobId?: string) => {
-  const candidateRepository = new CandidateRepository();
+  const candidateRepository = new CandidateRepository()
 
   const { isLoading, error, data } = useQuery({
     queryKey: ['candidates', jobId],
