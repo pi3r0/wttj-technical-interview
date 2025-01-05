@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import {useEffect, useState, type DragEvent } from 'react';
+import { useEffect, useState, type DragEvent } from 'react'
 import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
@@ -11,30 +11,30 @@ import './style.scss'
 
 function JobShow() {
   const { jobId } = useParams()
-  const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null);
+  const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null)
 
-  const viewModel = useJobShowVM();
+  const viewModel = useJobShowVM()
 
   useEffect(() => {
-    viewModel.load(jobId);
-  }, [jobId]);
+    viewModel.load(jobId)
+  }, [jobId])
 
   const handleDragStart = (candidate: Candidate) => {
-      setDraggedCandidate(candidate);
-  };
+    setDraggedCandidate(candidate)
+  }
 
   const handleDragOver = (e: DragEvent): void => {
-      e.preventDefault();
-  };
+    e.preventDefault()
+  }
 
   const handleDrop = (e: DragEvent, targetColumnStatus: Statuses) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!draggedCandidate) {
-        return;
+      return
     }
-    
-    viewModel.updateCandidateStatus(draggedCandidate.id, targetColumnStatus);
-  };
+
+    viewModel.updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+  }
 
   return (
     <>
@@ -44,9 +44,13 @@ function JobShow() {
         </Text>
       </Box>
       <Box p={20}>
-          { viewModel.uiModel.isLoading ? (<div>Loading...</div>) : null }
+        {viewModel.uiModel.isLoading ? <div>Loading...</div> : null}
 
-          { viewModel.uiModel.hasError ? (<div className="error" ><span> Error: { viewModel.uiModel.error }</span></div>) : null }
+        {viewModel.uiModel.hasError ? (
+          <div className="error">
+            <span> Error: {viewModel.uiModel.error}</span>
+          </div>
+        ) : null}
         <Flex gap={10}>
           {viewModel.uiModel.columns.map(column => (
             <Box
@@ -57,8 +61,8 @@ function JobShow() {
               borderRadius="md"
               overflow="hidden"
               key={column.id}
-              onDragOver={(e) => handleDragOver(e)}
-              onDrop={(e) => handleDrop(e, column.id)}
+              onDragOver={e => handleDragOver(e)}
+              onDrop={e => handleDrop(e, column.id)}
             >
               <Flex
                 p={10}
@@ -72,14 +76,12 @@ function JobShow() {
                 </Text>
                 <Badge>{column.candidatesCount}</Badge>
               </Flex>
-              <Flex
-                  direction="column"
-                  p={10}
-                  pb={0}>
+              <Flex direction="column" p={10} pb={0}>
                 {column.candidates.map((candidate: Candidate) => (
                   <CandidateCard
-                      candidate={candidate} key={candidate.id}
-                      handleDragStart={handleDragStart}
+                    candidate={candidate}
+                    key={candidate.id}
+                    handleDragStart={handleDragStart}
                   />
                 ))}
               </Flex>
