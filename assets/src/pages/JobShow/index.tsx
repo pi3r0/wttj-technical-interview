@@ -12,6 +12,7 @@ import './style.scss'
 function JobShow() {
   const { jobId } = useParams()
   const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null)
+  const [draggedOverColumnId, setDraggedOverColumnId] = useState<string | null>(null)
 
   const { jobName, isLoading, hasError, error, groupedCandidates, updateCandidateStatus } =
     useJobShowVM(jobId)
@@ -20,17 +21,20 @@ function JobShow() {
     setDraggedCandidate(candidate)
   }
 
-  const handleDragOver = (e: DragEvent): void => {
+  const handleDragOver = (e: DragEvent, columnId: string): void => {
     e.preventDefault()
+    setDraggedOverColumnId(columnId)
   }
 
-  const handleDrop = (e: DragEvent, targetColumnStatus: Statuses) => {
+  const handleDrop = async (e: DragEvent, targetColumnStatus: Statuses) => {
     e.preventDefault()
     if (!draggedCandidate) {
       return
     }
 
-    updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+    await updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+    setDraggedCandidate(null)
+    setDraggedOverColumnId(null)
   }
 
   return (
@@ -54,12 +58,10 @@ function JobShow() {
               w={300}
               border={1}
               backgroundColor="white"
-              borderColor="neutral-30"
+              borderColor={draggedOverColumnId === column.id ? 'bg-blue-50' : 'neutral-30'}
               borderRadius="md"
               overflow="hidden"
               key={column.id}
-              onDragOver={e => handleDragOver(e)}
-              onDrop={e => handleDrop(e, column.id)}
             >
               <Flex
                 p={10}
@@ -73,7 +75,15 @@ function JobShow() {
                 </Text>
                 <Badge>{column.candidatesCount}</Badge>
               </Flex>
-              <Flex direction="column" p={10} pb={0}>
+              <Flex
+                direction="column"
+                onDragOver={e => handleDragOver(e, column.id)}
+                onDrop={e => handleDrop(e, column.id)}
+                p={10}
+                pb={0}
+                backgroundColor="white"
+                className="column"
+              >
                 {column.candidates.map((candidate: Candidate) => (
                   <CandidateCard
                     candidate={candidate}
