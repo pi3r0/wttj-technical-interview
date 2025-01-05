@@ -1,0 +1,86 @@
+name: CI Pipeline
+
+on:
+  push:
+  pull_request:
+   branches:
+    - develop
+
+jobs:
+  backend:
+    name: Test Phoenix Backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wttj_test
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17.x'
+          otp-version: '27.0'
+
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-build-
+
+      - name: Install dependencies and manage migrations
+        run: mix setup
+
+      - name: Run tests
+        run: mix test
+
+  frontend:
+    name: Test React App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.11'
+          cache-dependency-path: './assets/yarn.lock'
+
+      - name: Install dependencies
+        working-directory: ./assets
+        run: yarn
+
+      - name: Check ESLint
+        working-directory: ./assets
+        run: yarn lint
+
+      - name: Check Prettier
+        working-directory: ./assets
+        run: yarn format:check
+
+      - name: Run tests
+        working-directory: ./assets
+        run: yarn test
