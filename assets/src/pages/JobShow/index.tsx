@@ -13,11 +13,8 @@ function JobShow() {
   const { jobId } = useParams()
   const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null)
 
-  const viewModel = useJobShowVM()
-
-  useEffect(() => {
-    viewModel.load(jobId)
-  }, [jobId])
+  const { jobName, isLoading, hasError, error, groupedCandidates, updateCandidateStatus } =
+    useJobShowVM(jobId)
 
   const handleDragStart = (candidate: Candidate) => {
     setDraggedCandidate(candidate)
@@ -33,26 +30,26 @@ function JobShow() {
       return
     }
 
-    viewModel.updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
+    updateCandidateStatus(draggedCandidate.id, targetColumnStatus)
   }
 
   return (
     <>
       <Box backgroundColor="neutral-70" p={20} alignItems="center">
         <Text variant="h5" color="white" m={0}>
-          {viewModel.uiModel.jobName}
+          {jobName}
         </Text>
       </Box>
       <Box p={20}>
-        {viewModel.uiModel.isLoading ? <div>Loading...</div> : null}
+        {isLoading ? <div>Loading...</div> : null}
 
-        {viewModel.uiModel.hasError ? (
+        {hasError ? (
           <div className="error">
-            <span> Error: {viewModel.uiModel.error}</span>
+            <span> Error: {error}</span>
           </div>
         ) : null}
         <Flex gap={10}>
-          {viewModel.uiModel.columns.map(column => (
+          {groupedCandidates.map(column => (
             <Box
               w={300}
               border={1}

@@ -1,8 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { CandidateRepository } from '../api/CandidateRepository'
 import { JobRepository } from '../api/JobRepository'
 import { Candidate, Statuses } from '../interfaces/Candidate'
-import { Job } from '../interfaces/Job'
+
+const isRejected = (input: PromiseSettledResult<unknown>): input is PromiseRejectedResult =>
+  input.status === 'rejected'
+
+const isFulfilled = <T>(input: PromiseSettledResult<T>): input is PromiseFulfilledResult<T> =>
+  input.status === 'fulfilled'
 
 interface Column {
   id: Statuses
@@ -11,131 +16,79 @@ interface Column {
   candidates: Candidate[]
 }
 
+const statusesToPosition: Record<Statuses, number> = {
+  new: 0,
+  interview: 1,
+  hired: 2,
+  rejected: 3,
+}
+
 interface JobShowUIModel {
   isLoading: boolean
   hasError: boolean
   error: string
   jobName: string
-  columns: Column[]
 }
-
-const initialColumns: Column[] = [
-  {
-    id: 'new',
-    name: 'new',
-    candidatesCount: 0,
-    candidates: [],
-  },
-  {
-    id: 'interview',
-    name: 'interview',
-    candidatesCount: 0,
-    candidates: [],
-  },
-  {
-    id: 'hired',
-    name: 'hired',
-    candidatesCount: 0,
-    candidates: [],
-  },
-  {
-    id: 'rejected',
-    name: 'rejected',
-    candidatesCount: 0,
-    candidates: [],
-  },
-]
 
 const initialState: JobShowUIModel = {
   isLoading: true,
   hasError: false,
   error: '',
   jobName: 'Not a Job',
-  columns: [...initialColumns],
 }
 
-export const useJobShowVM = () => {
+export const useJobShowVM = (jobId?: string) => {
   const jobRepository = new JobRepository()
   const candidateRepository = new CandidateRepository()
 
-  const job = useRef<Job | null>(null)
-  const candidates = useRef<Candidate[]>([])
   const [uiModel, setUIModel] = useState<JobShowUIModel>(initialState)
+  const [candidates, setCandidates] = useState<Candidate[]>([])
 
-  const load = async (jobId?: string) => {
-    setUIModel({ ...initialState })
-    job.current = { id: '-1', name: 'Not A Job' }
-    candidates.current = []
+  useEffect(() => {
+    const fetch = async (jobId?: string) => {
+      setUIModel({ ...initialState })
 
-    if (!jobId) {
-      setUIModel({ ...initialState, isLoading: false, hasError: true, error: 'Job ID missing' })
-      return
+      if (!jobId) {
+        setUIModel(prev => ({ ...prev, isLoading: false, hasError: true, error: 'Job ID missing' }))
+        return
+      }
+
+      const [job, candidates] = await Promise.allSettled([
+        jobRepository.getOne(jobId),
+        candidateRepository.getAllForJobId(jobId),
+      ])
+
+      setUIModel(prevUIModel => ({ ...prevUIModel, isLoading: false }))
+      if (isRejected(job) || isRejected(candidates)) {
+        console.log(job)
+        console.log(candidates)
+        setUIModel(prevUIModel => ({
+          ...prevUIModel,
+          hasError: true,
+          error: isRejected(job)
+            ? `Job ${jobId} not found`
+            : isRejected(candidates)
+              ? `Candidates for job ${jobId} can't be retreive`
+              : '',
+        }))
+        return
+      }
+
+      if (isFulfilled(job) && isFulfilled(candidates)) {
+        setUIModel(prevUIModel => ({
+          ...prevUIModel,
+          hasError: false,
+          error: '',
+          jobName: job.value.name,
+        }))
+        setCandidates(candidates.value)
+      }
     }
+    fetch(jobId).then()
+  }, [jobId])
 
-    try {
-      job.current = await jobRepository.getOne(jobId)
-    } catch {
-      setUIModel({
-        ...initialState,
-        isLoading: false,
-        hasError: true,
-        error: `Job ${jobId} not Found`,
-      })
-      return
-    }
-
-    try {
-      candidates.current = await candidateRepository.getAllForJobId(jobId)
-    } catch {
-      setUIModel({
-        ...initialState,
-        isLoading: false,
-        hasError: true,
-        error: `Candidates for Job ${jobId} cant be retreive`,
-      })
-      return
-    }
-
-    updateUIModel()
-  }
-
-  const updateCandidateStatus = async (candidateId: number, newStatus: Statuses) => {
-    // Early return if job not exist
-    if (!job.current) {
-      return
-    }
-
-    const candidate = candidates.current.find(
-      (candidate: Candidate) => candidate.id === candidateId
-    )
-    if (!candidate) {
-      return
-    }
-
-    if (candidate.status === newStatus) {
-      console.log('SAME')
-      return
-    }
-
-    try {
-      await candidateRepository.updateStatus(job.current.id, `${candidate.id}`, newStatus)
-      candidate.status = newStatus
-      updateUIModel()
-    } catch (error) {
-      console.error(error)
-      setUIModel({ ...uiModel, hasError: true, error: 'Error: status cannot be changed' })
-    }
-  }
-
-  const updateUIModel = () => {
-    const statusesToPosition: Record<Statuses, number> = {
-      new: 0,
-      interview: 1,
-      hired: 2,
-      rejected: 3,
-    }
-
-    const sortedCandidates = candidates.current.reduce<Column[]>(
+  const groupedCandidates = useMemo(() => {
+    return candidates.reduce<Column[]>(
       (acc, curr) => {
         const statusIndex = statusesToPosition[curr.status] ?? 4
         if (!acc[statusIndex]) {
@@ -181,15 +134,42 @@ export const useJobShowVM = () => {
         },
       ]
     )
+  }, [candidates])
 
-    setUIModel({
-      isLoading: false,
-      hasError: false,
-      error: '',
-      jobName: job.current?.name ?? 'Not loaded',
-      columns: sortedCandidates,
-    })
+  const updateCandidateStatus = async (candidateId: number, newStatus: Statuses) => {
+    // Early return if job not exist
+    if (!jobId) {
+      return
+    }
+
+    const oldCandidate = candidates.find((candidate: Candidate) => candidate.id === candidateId)
+    if (!oldCandidate) {
+      return
+    }
+
+    try {
+      if (oldCandidate.status === newStatus) {
+        console.log('SAME')
+        return
+      }
+
+      setCandidates(prevCandidates =>
+        prevCandidates.map(candidate =>
+          candidate.id === candidateId ? { ...candidate, status: newStatus } : candidate
+        )
+      )
+
+      await candidateRepository.updateStatus(jobId, `${candidateId}`, newStatus)
+    } catch (error) {
+      console.error(error)
+      setCandidates(prevCandidates =>
+        prevCandidates.map(candidate =>
+          candidate.id === candidateId ? { ...candidate, status: oldCandidate.status } : candidate
+        )
+      )
+      setUIModel({ ...uiModel, hasError: true, error: 'Error: status cannot be changed' })
+    }
   }
 
-  return { load, updateCandidateStatus, uiModel }
+  return { ...uiModel, groupedCandidates, updateCandidateStatus }
 }

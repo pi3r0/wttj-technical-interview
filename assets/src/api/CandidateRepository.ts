@@ -29,7 +29,9 @@ export class CandidateRepository implements CandidateRepositoryPort {
     newStatus: 'new' | 'interview' | 'hired' | 'rejected'
   ) {
     return this.httpClient.put<Candidate>(`${baseURL}/jobs/${jobId}/candidates/${candidateId}`, {
-      'candidate[status]': newStatus,
+      candidate: {
+        status: newStatus,
+      },
     })
   }
 }

@@ -8,13 +8,17 @@ class Http implements HttpClientPort {
   async apiRequest<T>(
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     url: string,
-    params: Record<string, string>
+    params: Record<string, string>,
+    body?: Record<string, unknown>
   ): Promise<T> {
+    const headers = new Headers({ 'Content-Type': 'application/json' })
+
     const searchParams = new URLSearchParams(params)
 
     const fullUrl = Object.keys(params).length ? `${url}?${searchParams.toString()}` : url
 
-    const response = await fetch(fullUrl, { method })
+    const raw = JSON.stringify(body)
+    const response = await fetch(fullUrl, { headers, method, body: raw })
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -29,7 +33,7 @@ class Http implements HttpClientPort {
   }
 
   async put<T>(url: string, data: Record<string, string>): Promise<T> {
-    return this.apiRequest('PUT', url, data)
+    return this.apiRequest('PUT', url, {}, data)
   }
 }
 
