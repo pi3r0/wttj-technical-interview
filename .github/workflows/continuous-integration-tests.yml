@@ -4,6 +4,7 @@ on:
   pull_request:
    branches:
     - develop
+    - main
 
 jobs:
   backend:
@@ -83,3 +84,7 @@ jobs:
       - name: Run tests
         working-directory: ./assets
         run: yarn test
+
+      - name: Run Build
+        working-directory: ./assets
+        run: yarn build
