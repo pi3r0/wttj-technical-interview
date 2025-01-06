@@ -5,7 +5,13 @@ import { render } from '../../test-utils'
 import CandidateCard from '../../components/Candidate'
 
 test('renders candidate email', () => {
-  const candidate: Candidate = { id: 10, email: 'test@example.com', position: 1, status: 'new' }
+  const candidate: Candidate = {
+    id: 10,
+    email: 'test@example.com',
+    position: 1,
+    status: 'new',
+    updated_at: new Date(),
+  }
   const { getByText } = render(
     <CandidateCard
       candidate={candidate}

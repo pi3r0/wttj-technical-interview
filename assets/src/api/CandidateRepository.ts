@@ -9,7 +9,9 @@ export interface CandidateRepositoryPort {
     jobId: string,
     candidateId: string,
     newStatus: 'new' | 'interview' | 'hired' | 'rejected',
-    newPosition: number
+    newPosition: number,
+    currentCandidateUpdatedAt: Date,
+    user: { name: string; color: string }
   ): Promise<Candidate>
 }
 
@@ -28,13 +30,17 @@ export class CandidateRepository implements CandidateRepositoryPort {
     jobId: string,
     candidateId: string,
     newStatus: 'new' | 'interview' | 'hired' | 'rejected',
-    newPosition: number
+    newPosition: number,
+    currentCandidateUpdatedAt: Date,
+    user: { name: string; color: string }
   ) {
     return this.httpClient.put<Candidate>(`${baseURL}/jobs/${jobId}/candidates/${candidateId}`, {
       candidate: {
         status: newStatus,
         position: newPosition,
       },
+      user: user,
+      current_candidate_updated_at: currentCandidateUpdatedAt,
     })
   }
 }
