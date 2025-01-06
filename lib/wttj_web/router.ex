@@ -20,6 +20,7 @@ defmodule WttjWeb.Router do
 
     resources "/jobs", JobController, except: [:new, :edit] do
       resources "/candidates", CandidateController, except: [:new, :edit]
+      get "/updates", ServerSentEventController, :stream
     end
   end
 
