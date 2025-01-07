@@ -47,14 +47,36 @@ defmodule WttjWeb.CandidateController do
   use WttjWeb, :controller
 
   alias Wttj.Candidates
+  alias Wttj.Candidates.Repository
   alias Wttj.Candidates.UpdateService
   alias WttjWeb.JobUpdateBroadcast
 
   action_fallback WttjWeb.FallbackController
 
-  def index(conn, %{"job_id" => job_id}) do
-    candidates = Candidates.list_candidates(job_id)
-    render(conn, :index, candidates: candidates)
+  def index(conn, %{"job_id" => job_id} = params) do
+    # should check the status to validated
+    status = params["status"]
+    cursor = case params["cursor"] do
+      nil -> nil
+      cursor_str ->
+        case Float.parse(cursor_str) do
+          {float_value, _} -> float_value
+          :error -> nil
+        end
+    end
+
+    limit = String.to_integer(params["limit"] || "1000")
+    with_column = params["with_column"] || false
+
+    %{candidates: candidates, has_more: has_more} = Repository.get_paginated_by_job_id(job_id, status, %{ :cursor => cursor, :limit => limit } )
+
+
+    unless with_column do
+      render(conn, :index, candidates: candidates, has_more: has_more)
+    else
+      columns = Repository.get_columns_by_job_id(job_id)
+      render(conn, :index, candidates: candidates, has_more: has_more, columns: columns)
+    end
   end
 
   def show(conn, %{"job_id" => job_id, "id" => id}) do

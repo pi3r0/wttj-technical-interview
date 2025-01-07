@@ -12,9 +12,64 @@ defmodule WttjWeb.CandidateControllerTest do
   end
 
   describe "index" do
-    test "lists all candidates", %{conn: conn, job: job} do
+
+    test "lists all candidates without candidates", %{conn: conn, job: job} do
       conn = get(conn, ~p"/api/jobs/#{job}/candidates")
-      assert json_response(conn, 200)["data"] == []
+      assert json_response(conn, 200)["data"] == %{ "candidates" => [], "has_more" => false}
+    end
+
+    test "lists all candidates with candidates, without column", %{conn: conn, job: job} do
+      candidate_new_second = candidate_fixture(%{job_id: job.id, status: :new, position: 2000 })
+      candidate_new_first = candidate_fixture(%{job_id: job.id, status: :new, position: 1000 })
+      candidate_new_third = candidate_fixture(%{job_id: job.id, status: :new, position: 3000 })
+      candidate_interview_first = candidate_fixture(%{job_id: job.id, status: :interview, position: 200 })
+      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1000 })
+      candidate_rejected_second = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1500 })
+      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2000 })
+      candidate_rejected_fourth = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2500 })
+
+      expectedResult = Enum.map([candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth], fn x ->
+        %{
+          "email" => x.email,
+          "id" => x.id,
+          "position" => x.position,
+          "status" => Atom.to_string(x.status),
+          "updated_at" => DateTime.to_iso8601(x.updated_at)
+        }
+      end)
+      conn = get(conn, ~p"/api/jobs/#{job}/candidates")
+      assert json_response(conn, 200)["data"] == %{ "candidates" => expectedResult, "has_more" => false}
+    end
+
+    test "lists all candidates with candidates, with column", %{conn: conn, job: job} do
+      candidate_new_second = candidate_fixture(%{job_id: job.id, status: :new, position: 2000 })
+      candidate_new_first = candidate_fixture(%{job_id: job.id, status: :new, position: 1000 })
+      candidate_new_third = candidate_fixture(%{job_id: job.id, status: :new, position: 3000 })
+      candidate_interview_first = candidate_fixture(%{job_id: job.id, status: :interview, position: 200 })
+      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1000 })
+      candidate_rejected_second = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1500 })
+      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2000 })
+      candidate_rejected_fourth = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2500 })
+
+      expectedResult = Enum.map([candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth], fn x ->
+        %{
+          "email" => x.email,
+          "id" => x.id,
+          "position" => x.position,
+          "status" => Atom.to_string(x.status),
+          "updated_at" => DateTime.to_iso8601(x.updated_at)
+        }
+      end)
+      conn = get(conn, ~p"/api/jobs/#{job}/candidates?with_column=true")
+      assert json_response(conn, 200)["data"] == %{
+        "candidates" => expectedResult,
+        "has_more" => false,
+        "columns" => %{
+          "interview" => 1,
+          "new" => 3,
+          "rejected" => 4,
+        }
+      }
     end
   end
 
