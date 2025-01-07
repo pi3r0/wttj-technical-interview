@@ -23,12 +23,14 @@ defmodule WttjWeb.CandidateControllerTest do
       candidate_new_first = candidate_fixture(%{job_id: job.id, status: :new, position: 1000 })
       candidate_new_third = candidate_fixture(%{job_id: job.id, status: :new, position: 3000 })
       candidate_interview_first = candidate_fixture(%{job_id: job.id, status: :interview, position: 200 })
-      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1000 })
+      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1100 })
       candidate_rejected_second = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1500 })
-      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2000 })
+      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2100 })
       candidate_rejected_fourth = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2500 })
 
-      expectedResult = Enum.map([candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth], fn x ->
+      expectedResult = [candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth]
+                       |> Enum.sort_by(&(&1.position))
+                       |> Enum.map(fn x ->
         %{
           "email" => x.email,
           "id" => x.id,
@@ -46,12 +48,14 @@ defmodule WttjWeb.CandidateControllerTest do
       candidate_new_first = candidate_fixture(%{job_id: job.id, status: :new, position: 1000 })
       candidate_new_third = candidate_fixture(%{job_id: job.id, status: :new, position: 3000 })
       candidate_interview_first = candidate_fixture(%{job_id: job.id, status: :interview, position: 200 })
-      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1000 })
+      candidate_rejected_first = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1100 })
       candidate_rejected_second = candidate_fixture(%{job_id: job.id, status: :rejected, position: 1500 })
-      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2000 })
+      candidate_rejected_third = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2100 })
       candidate_rejected_fourth = candidate_fixture(%{job_id: job.id, status: :rejected, position: 2500 })
 
-      expectedResult = Enum.map([candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth], fn x ->
+      expectedResult = [candidate_interview_first, candidate_new_first, candidate_new_second, candidate_new_third, candidate_rejected_first, candidate_rejected_second, candidate_rejected_third, candidate_rejected_fourth]
+      |> Enum.sort_by(&(&1.position))
+      |> Enum.map(fn x ->
         %{
           "email" => x.email,
           "id" => x.id,
