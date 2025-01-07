@@ -67,7 +67,7 @@ defmodule WttjWeb.CandidateController do
     end
 
     limit = String.to_integer(params["limit"] || "1000")
-    with_column = params["with_column"] || false
+    with_column = params["with_column"]
 
     cache_key = "candidates:#{job_id}:#{status}:#{cursor}:#{limit}:#{with_column}"
 

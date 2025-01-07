@@ -72,9 +72,9 @@ defmodule Wttj.Candidates.RepositoryTest do
       candidate_new_first = candidate_fixture(%{job_id: job1.id, status: :new, position: 1000 })
       candidate_new_third = candidate_fixture(%{job_id: job1.id, status: :new, position: 3000 })
       candidate_interview_first = candidate_fixture(%{job_id: job1.id, status: :interview, position: 200 })
-      candidate_rejected_first = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 1000 })
+      candidate_rejected_first = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 1100 })
       candidate_rejected_second = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 1500 })
-      candidate_rejected_third = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 2000 })
+      candidate_rejected_third = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 2100 })
       candidate_rejected_fourth = candidate_fixture(%{job_id: job1.id, status: :rejected, position: 2500 })
 
       {
@@ -91,6 +91,8 @@ defmodule Wttj.Candidates.RepositoryTest do
       result = Repository.get_paginated_by_job_id(job1.id)
 
       expectedResult = List.flatten([hired, interview, new, rejected])
+      |> Enum.sort_by(&(&1.position))
+
       assert length(result.candidates) == length(expectedResult)
       assert result == %{
                :candidates => expectedResult,

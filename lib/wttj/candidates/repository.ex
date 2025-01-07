@@ -43,7 +43,7 @@ defmodule Wttj.Candidates.Repository do
     })
     base_query = from c in Candidate,
       where: c.job_id == ^job_id,
-      order_by: [asc: c.status, asc: c.position]
+      order_by: [asc: c.position]
 
     query = if status, do: where(base_query, [c], c.status in ^String.split(status, ",")), else: base_query
 
