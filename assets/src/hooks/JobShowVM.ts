@@ -10,6 +10,8 @@ interface Column {
   name: string
   candidatesCount: number
   candidates: Candidate[]
+  hasMoreCandidates: boolean
+  lastPosition: number
 }
 
 interface JobShowState {
@@ -20,6 +22,7 @@ interface JobShowState {
     name: string
   } | null
   candidates: Candidate[]
+  columns: Record<string, number>
 }
 
 const INITIAL_STATE: JobShowState = {
@@ -27,6 +30,7 @@ const INITIAL_STATE: JobShowState = {
   error: null,
   job: null,
   candidates: [],
+  columns: {},
 }
 
 interface EventUpdate {
@@ -35,10 +39,38 @@ interface EventUpdate {
 }
 
 const COLUMN_DEFINITIONS: Column[] = [
-  { id: 'new', name: 'New', candidatesCount: 0, candidates: [] },
-  { id: 'interview', name: 'Interview', candidatesCount: 0, candidates: [] },
-  { id: 'hired', name: 'Hired', candidatesCount: 0, candidates: [] },
-  { id: 'rejected', name: 'Rejected', candidatesCount: 0, candidates: [] },
+  {
+    id: 'new',
+    name: 'New',
+    candidatesCount: 0,
+    candidates: [],
+    hasMoreCandidates: false,
+    lastPosition: 0,
+  },
+  {
+    id: 'interview',
+    name: 'Interview',
+    candidatesCount: 0,
+    candidates: [],
+    hasMoreCandidates: false,
+    lastPosition: 0,
+  },
+  {
+    id: 'hired',
+    name: 'Hired',
+    candidatesCount: 0,
+    candidates: [],
+    hasMoreCandidates: false,
+    lastPosition: 0,
+  },
+  {
+    id: 'rejected',
+    name: 'Rejected',
+    candidatesCount: 0,
+    candidates: [],
+    hasMoreCandidates: false,
+    lastPosition: 0,
+  },
 ]
 
 const STATUS_POSITIONS: Record<Statuses, number> = {
@@ -75,30 +107,31 @@ export const useJobShowVM = (
       const jobRepository = new JobRepository(httpClient)
       const candidateRepository = new CandidateRepository(httpClient)
 
-      const [job, candidates] = await Promise.allSettled([
+      const [job, result] = await Promise.allSettled([
         jobRepository.getOne(jobId),
         candidateRepository.getAllForJobId(jobId),
       ])
 
       setState(prevState => ({ ...prevState, isLoading: false }))
-      if (isRejected(job) || isRejected(candidates)) {
+      if (isRejected(job) || isRejected(result)) {
         setState(prevState => ({
           ...prevState,
           error: isRejected(job)
             ? `Job ${jobId} not found`
-            : isRejected(candidates)
+            : isRejected(result)
               ? `Candidates for job ${jobId} can't be retrieve`
               : 'Unexpected error',
         }))
         return
       }
 
-      if (isFulfilled(job) && isFulfilled(candidates)) {
+      if (isFulfilled(job) && isFulfilled(result)) {
         setState(prevState => ({
           ...prevState,
           error: null,
           job: job.value,
-          candidates: candidates.value,
+          candidates: result.value.candidates,
+          columns: result.value.columns,
         }))
       }
     }
@@ -148,8 +181,28 @@ export const useJobShowVM = (
         try {
           const update: EventUpdate['data'] = JSON.parse(event.data)
 
+          //TODO: need to refresh the column number after update
           // Do not update if it's the same user
           if (update.user.name === user?.name) {
+            return
+          }
+
+          // We only need to update if the updated candidate is on the visible area
+          // of the current session
+          const isUpdateNeeded = (newPosition: number, visibleCandidatesInStatus: Candidate[]) => {
+            for (const candidate of visibleCandidatesInStatus) {
+              if (candidate.position >= newPosition) return true
+            }
+            return visibleCandidatesInStatus.length <= 0
+          }
+
+          // check if position is contained in visible position
+          if (
+            !isUpdateNeeded(
+              update.candidate.position,
+              state.candidates.filter(c => c.status === update.candidate.status)
+            )
+          ) {
             return
           }
 
@@ -174,13 +227,14 @@ export const useJobShowVM = (
       eventSource?.close()
       setConnectionStatus('disconnected')
     }
-  }, [jobId, retryCount])
+  }, [jobId, retryCount, user])
 
   const groupedCandidates = useMemo(() => {
     const columns = [...COLUMN_DEFINITIONS]
     columns.forEach(column => {
       column.candidates = []
       column.candidatesCount = column.candidates.length
+      column.lastPosition = 0
     })
 
     // assign candidates to right column
@@ -197,11 +251,14 @@ export const useJobShowVM = (
     // sort and count
     columns.forEach(column => {
       column.candidates.sort((a, b) => a.position - b.position)
-      column.candidatesCount = column.candidates.length
+      column.candidatesCount = state.columns[column.id] ?? 0
+      column.lastPosition =
+        column.candidates.length > 0 ? column.candidates[column.candidates.length - 1].position : 0
+      column.hasMoreCandidates = column.candidatesCount > column.candidates.length
     })
 
     return columns
-  }, [state.candidates])
+  }, [state.candidates, state.columns])
 
   const calculateNewPosition = useCallback(
     (targetIndex: number, candidatesInColumn: Candidate[]): number => {
@@ -258,7 +315,7 @@ export const useJobShowVM = (
         error: null,
         candidates: prevState.candidates.map(candidate =>
           candidate.id === candidateId
-            ? { ...candidate, status: newStatus, position: newPosition }
+            ? { ...candidate, status: newStatus, position: newPosition, updated_at: new Date() }
             : candidate
         ),
       }))
@@ -285,6 +342,28 @@ export const useJobShowVM = (
     }
   }
 
+  const loadMoreItemsOnColumns = async (status: string, lastPosition: number) => {
+    if (!state.job) {
+      return
+    }
+
+    const candidateRepository = new CandidateRepository(httpClient)
+
+    try {
+      const result = await candidateRepository.getAllForJobId(state.job.id, status, lastPosition)
+
+      setState(prevState => ({
+        ...prevState,
+        candidates: prevState.candidates.concat(...result.candidates),
+      }))
+    } catch {
+      setState(prevState => ({
+        ...prevState,
+        error: "Error: can't fetch next item",
+      }))
+    }
+  }
+
   return {
     logged: !!user,
     userName: user?.name ?? '',
@@ -295,6 +374,7 @@ export const useJobShowVM = (
     jobName: state.job?.name ?? 'Not Found',
     groupedCandidates,
     updateCandidateStatus,
+    loadMoreItemsOnColumns,
     setUser,
   }
 }

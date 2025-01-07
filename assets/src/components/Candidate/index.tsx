@@ -4,6 +4,7 @@ import { Candidate, Statuses } from '../../interfaces/Candidate'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
 import './style.scss'
+import { Label } from '@welcome-ui/label'
 
 function CandidateCard({
   candidate,
@@ -29,7 +30,9 @@ function CandidateCard({
           className="card-drop-area"
           onDragOver={e => handleDragOver(e, candidate.status, cardIndex)}
           onDrop={e => handleDrop(e, candidate.status, cardIndex)}
-        />
+        >
+          <Label>Drag Here</Label>
+        </Box>
       ) : null}
 
       <Card
