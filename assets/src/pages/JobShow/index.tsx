@@ -8,6 +8,7 @@ import { Candidate, Statuses } from '../../interfaces/Candidate'
 import CandidateCard from '../../components/Candidate'
 import { Badge } from '@welcome-ui/badge'
 import './style.scss'
+import ColorPickerModal from '../../components/ColorPickerModal.tsx'
 
 function JobShow() {
   const { jobId } = useParams()
@@ -16,8 +17,20 @@ function JobShow() {
   const [draggedOverColumnId, setDraggedOverColumnId] = useState<string | null>(null)
   const [draggedOverRowId, setDraggedOverRowId] = useState<number | null>(null)
 
-  const { jobName, isLoading, hasError, error, groupedCandidates, updateCandidateStatus } =
-    useJobShowVM(jobId)
+  const {
+    logged,
+    setUser,
+    jobName,
+    isLoading,
+    hasError,
+    error,
+    groupedCandidates,
+    updateCandidateStatus,
+  } = useJobShowVM(jobId)
+
+  const handleSubmit = (data: { name: string; color: string }) => {
+    setUser(data)
+  }
 
   const handleDragStart = (candidate: Candidate) => {
     setDraggedCandidate(candidate)
@@ -50,6 +63,7 @@ function JobShow() {
 
   return (
     <>
+      <ColorPickerModal isOpen={!logged} onSubmit={handleSubmit} />
       <Box backgroundColor="neutral-70" p={20} alignItems="center">
         <Text variant="h5" color="white" m={0}>
           {jobName}

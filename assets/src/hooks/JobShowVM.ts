@@ -29,6 +29,11 @@ const INITIAL_STATE: JobShowState = {
   candidates: [],
 }
 
+interface EventUpdate {
+  type: 'candidate_updated'
+  data: { candidate: Candidate; user: { name: string; color: string } }
+}
+
 const COLUMN_DEFINITIONS: Column[] = [
   { id: 'new', name: 'New', candidatesCount: 0, candidates: [] },
   { id: 'interview', name: 'Interview', candidatesCount: 0, candidates: [] },
@@ -43,8 +48,16 @@ const STATUS_POSITIONS: Record<Statuses, number> = {
   rejected: 3,
 }
 
-export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) => {
+export const useJobShowVM = (
+  jobId?: string,
+  httpClient: HttpClientPort = http,
+  testUser?: { name: string; color: '#111111' }
+) => {
   const [state, setState] = useState<JobShowState>(INITIAL_STATE)
+  const [user, setUser] = useState<{ name: string; color: string } | null>(testUser ?? null)
+  const [, setConnectionStatus] = useState<'connected' | 'disconnected'>('disconnected')
+  const [retryCount, setRetryCount] = useState(0)
+  const MAX_RETRY_ATTEMPTS = 3
 
   useEffect(() => {
     if (!jobId) {
@@ -91,6 +104,77 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
     }
     fetch(jobId).then()
   }, [jobId, httpClient])
+
+  // SSE Connection handling
+  useEffect(() => {
+    // Avoid to be able to test the VM
+    if (process.env.NODE_ENV === 'test') {
+      return
+    }
+
+    if (!jobId) return
+
+    let eventSource: EventSource | null = null
+
+    const connectSSE = () => {
+      eventSource = new EventSource(`/sse/jobs/${jobId}/updates`)
+
+      eventSource.onopen = () => {
+        setConnectionStatus('connected')
+        setRetryCount(0)
+      }
+
+      eventSource.onerror = () => {
+        setConnectionStatus('disconnected')
+        eventSource?.close()
+
+        // Implement exponential backoff for retries
+        if (retryCount < MAX_RETRY_ATTEMPTS) {
+          const timeout = Math.min(1000 * Math.pow(2, retryCount), 10000)
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1)
+            connectSSE()
+          }, timeout)
+        } else {
+          setState(prev => ({
+            ...prev,
+            error: 'Lost connection to server. Please refresh the page.',
+          }))
+        }
+      }
+
+      // Handle incoming SSE updates
+      eventSource.addEventListener('candidate_updated', event => {
+        try {
+          const update: EventUpdate['data'] = JSON.parse(event.data)
+
+          // Do not update if it's the same user
+          if (update.user.name === user?.name) {
+            return
+          }
+
+          setState(prevState => ({
+            ...prevState,
+            candidates: prevState.candidates.map(candidate =>
+              candidate.id === update.candidate.id
+                ? { ...candidate, ...update.candidate }
+                : candidate
+            ),
+          }))
+        } catch (error) {
+          console.error('Failed to process update:', error)
+        }
+      })
+    }
+
+    connectSSE()
+
+    // Cleanup
+    return () => {
+      eventSource?.close()
+      setConnectionStatus('disconnected')
+    }
+  }, [jobId, retryCount])
 
   const groupedCandidates = useMemo(() => {
     const columns = [...COLUMN_DEFINITIONS]
@@ -144,6 +228,10 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
       throw new Error('Job ID is required')
     }
 
+    if (!user) {
+      throw new Error('Should be logged')
+    }
+
     const oldCandidate = state.candidates.find(
       (candidate: Candidate) => candidate.id === candidateId
     )
@@ -180,7 +268,9 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
         state.job.id,
         `${candidateId}`,
         newStatus,
-        newPosition
+        newPosition,
+        oldCandidate.updated_at,
+        user
       )
     } catch {
       setState(prevState => ({
@@ -196,11 +286,15 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
   }
 
   return {
+    logged: !!user,
+    userName: user?.name ?? '',
+    userColor: user?.color ?? '#111111',
     isLoading: state.isLoading,
     hasError: !!state.error,
     error: state.error ?? '',
     jobName: state.job?.name ?? 'Not Found',
     groupedCandidates,
     updateCandidateStatus,
+    setUser,
   }
 }

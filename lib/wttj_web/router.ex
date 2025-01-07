@@ -14,6 +14,15 @@ defmodule WttjWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Create a new pipeline specifically for SSE
+  pipeline :sse do
+  end
+
+  scope "/sse", WttjWeb do
+    pipe_through [:sse]  # Only SSE pipeline, not api
+    get "/jobs/:job_id/updates", ServerSentEventController, :stream
+  end
+
   # Other scopes may use custom stacks.
   scope "/api", WttjWeb do
     pipe_through :api

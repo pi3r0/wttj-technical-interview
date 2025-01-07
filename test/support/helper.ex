@@ -1,0 +1,1 @@
+Mox.defmock(Wttj.Candidates.RepositoryMock, for: Wttj.Candidates.RepositoryBehaviour)

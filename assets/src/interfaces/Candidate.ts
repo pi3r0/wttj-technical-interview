@@ -5,4 +5,5 @@ export interface Candidate {
   email: string
   status: Statuses
   position: number
+  updated_at: Date
 }
