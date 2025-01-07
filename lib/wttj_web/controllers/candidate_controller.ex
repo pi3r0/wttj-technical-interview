@@ -50,6 +50,7 @@ defmodule WttjWeb.CandidateController do
   alias Wttj.Candidates.Repository
   alias Wttj.Candidates.UpdateService
   alias WttjWeb.JobUpdateBroadcast
+  alias Wttj.Candidates.Cache
 
   action_fallback WttjWeb.FallbackController
 
@@ -68,14 +69,24 @@ defmodule WttjWeb.CandidateController do
     limit = String.to_integer(params["limit"] || "1000")
     with_column = params["with_column"] || false
 
-    %{candidates: candidates, has_more: has_more} = Repository.get_paginated_by_job_id(job_id, status, %{ :cursor => cursor, :limit => limit } )
+    cache_key = "candidates:#{job_id}:#{status}:#{cursor}:#{limit}:#{with_column}"
 
+    case Cache.get(cache_key) do
+      {:ok, cached_data} ->
+        render(conn, :index, cached_data)
+      _ ->
+        %{candidates: candidates, has_more: has_more} =
+          Repository.get_paginated_by_job_id(job_id, status, %{cursor: cursor, limit: limit})
 
-    unless with_column do
-      render(conn, :index, candidates: candidates, has_more: has_more)
-    else
-      columns = Repository.get_columns_by_job_id(job_id)
-      render(conn, :index, candidates: candidates, has_more: has_more, columns: columns)
+        result = if with_column do
+          columns = Repository.get_columns_by_job_id(job_id)
+          %{candidates: candidates, has_more: has_more, columns: columns}
+        else
+          %{candidates: candidates, has_more: has_more}
+        end
+
+        Cache.put(cache_key, result)
+        render(conn, :index, result)
     end
   end
 
@@ -94,6 +105,10 @@ defmodule WttjWeb.CandidateController do
       %{valid?: true} ->
         case UpdateService.update_candidate(job_id, id, candidate, current_candidate_updated_at) do
           {:ok, :updated, candidate} ->
+
+            # remove cache when update is done
+            Cache.match_delete_by_job_id(job_id)
+
             conn
             |> put_status(:ok)
             |> render(:show, candidate: candidate)
