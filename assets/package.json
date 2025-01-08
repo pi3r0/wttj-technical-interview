@@ -13,11 +13,14 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.11.2",
     "@welcome-ui/badge": "^6.0.0",
     "@welcome-ui/box": "^6.0.0",
+    "@welcome-ui/button": "^6.6.0",
     "@welcome-ui/card": "^6.0.0",
     "@welcome-ui/core": "^6.0.0",
     "@welcome-ui/flex": "^6.0.0",
+    "@welcome-ui/label": "^6.5.0",
     "@welcome-ui/link": "^6.0.0",
     "@welcome-ui/tag": "^6.0.0",
     "@welcome-ui/text": "^6.0.0",

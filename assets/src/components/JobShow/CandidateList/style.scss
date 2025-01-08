@@ -1,0 +1,16 @@
+.column-end-drop-area {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 60px;
+  border-radius: 8px;
+  border-color: inherit;
+  background-color: inherit;
+
+  &.highlighted {
+    background-color: #add8e64c;
+    border-color: #add8e6;
+    height: 64px;
+    padding-bottom: 8px;
+  }
+}

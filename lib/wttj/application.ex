@@ -17,7 +17,9 @@ defmodule Wttj.Application do
       # Start a worker by calling: Wttj.Worker.start_link(arg)
       # {Wttj.Worker, arg},
       # Start to serve requests, typically the last entry
-      WttjWeb.Endpoint
+      WttjWeb.Endpoint,
+      # ETS Cache mechanism
+      Wttj.Candidates.Cache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
