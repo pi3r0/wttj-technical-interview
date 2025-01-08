@@ -5,10 +5,10 @@ import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
 import { Candidate, Statuses } from '../../interfaces/Candidate'
-import CandidateCard from '../../components/Candidate'
-import { Badge } from '@welcome-ui/badge'
+import StatusColumnHeader from '../../components/JobShow/StatusColumnHeader/StatusColumnHeader.tsx'
 import './style.scss'
 import ColorPickerModal from '../../components/ColorPickerModal.tsx'
+import CandidateList from '../../components/JobShow/CandidateList'
 
 function JobShow() {
   const { jobId } = useParams()
@@ -26,6 +26,7 @@ function JobShow() {
     error,
     groupedCandidates,
     updateCandidateStatus,
+    loadMoreItemsOnColumns,
   } = useJobShowVM(jobId)
 
   const handleSubmit = (data: { name: string; color: string }) => {
@@ -88,40 +89,27 @@ function JobShow() {
               overflow="hidden"
               key={column.id}
             >
+              <StatusColumnHeader name={column.name} candidateCount={column.candidatesCount} />
               <Flex
-                p={10}
-                borderBottom={1}
-                borderColor="neutral-30"
-                alignItems="center"
-                justify="space-between"
+                w="100%"
+                h="300px"
+                direction="column"
+                backgroundColor="white"
+                className="column"
               >
-                <Text color="black" m={0} textTransform="capitalize">
-                  {column.name}
-                </Text>
-                <Badge>{column.candidatesCount}</Badge>
-              </Flex>
-              <Flex direction="column" p={10} pb={0} backgroundColor="white" className="column">
-                {column.candidates.map((candidate: Candidate, index: number) => (
-                  <Flex direction="column" gap={4} key={candidate.id}>
-                    <CandidateCard
-                      candidate={candidate}
-                      cardIndex={index}
-                      isDraggedOver={
-                        draggedCandidate?.id !== candidate.id &&
-                        draggedOverRowId === index &&
-                        draggedOverColumnId === column.id
-                      }
-                      handleDragOver={handleDragOver}
-                      handleDrop={handleDrop}
-                      handleDragStart={handleDragStart}
-                      handleDragEnd={handleDragEnd}
-                    />
-                  </Flex>
-                ))}
-                <div
-                  className={`column-end-drop-area ${draggedOverColumnId === column.id && draggedOverRowId === column.candidatesCount ? 'highlighted' : ''}`}
-                  onDrop={e => handleDrop(e, column.id, column.candidatesCount)}
-                  onDragOver={e => handleDragOver(e, column.id, column.candidatesCount)}
+                <CandidateList
+                  candidates={column.candidates}
+                  columnId={column.id}
+                  columnLastPosition={column.lastPosition}
+                  columnHasMoreRow={column.hasMoreCandidates}
+                  handleDragStart={handleDragStart}
+                  handleDragEnd={handleDragEnd}
+                  handleDragOver={handleDragOver}
+                  handleDrop={handleDrop}
+                  draggedCandidateId={draggedCandidate?.id}
+                  draggedOverRowId={draggedOverRowId}
+                  draggedOverColumnId={draggedOverColumnId}
+                  loadMoreItemsOnColumns={loadMoreItemsOnColumns}
                 />
               </Flex>
             </Box>

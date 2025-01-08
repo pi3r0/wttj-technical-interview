@@ -47,14 +47,47 @@ defmodule WttjWeb.CandidateController do
   use WttjWeb, :controller
 
   alias Wttj.Candidates
+  alias Wttj.Candidates.Repository
   alias Wttj.Candidates.UpdateService
   alias WttjWeb.JobUpdateBroadcast
+  alias Wttj.Candidates.Cache
 
   action_fallback WttjWeb.FallbackController
 
-  def index(conn, %{"job_id" => job_id}) do
-    candidates = Candidates.list_candidates(job_id)
-    render(conn, :index, candidates: candidates)
+  def index(conn, %{"job_id" => job_id} = params) do
+    # should check the status to validated
+    status = params["status"]
+    cursor = case params["cursor"] do
+      nil -> nil
+      cursor_str ->
+        case Float.parse(cursor_str) do
+          {float_value, _} -> float_value
+          :error -> nil
+        end
+    end
+
+    limit = String.to_integer(params["limit"] || "1000")
+    with_column = params["with_column"]
+
+    cache_key = "candidates:#{job_id}:#{status}:#{cursor}:#{limit}:#{with_column}"
+
+    case Cache.get(cache_key) do
+      {:ok, cached_data} ->
+        render(conn, :index, cached_data)
+      _ ->
+        %{candidates: candidates, has_more: has_more} =
+          Repository.get_paginated_by_job_id(job_id, status, %{cursor: cursor, limit: limit})
+
+        result = if with_column do
+          columns = Repository.get_columns_by_job_id(job_id)
+          %{candidates: candidates, has_more: has_more, columns: columns}
+        else
+          %{candidates: candidates, has_more: has_more}
+        end
+
+        Cache.put(cache_key, result)
+        render(conn, :index, result)
+    end
   end
 
   def show(conn, %{"job_id" => job_id, "id" => id}) do
@@ -72,11 +105,16 @@ defmodule WttjWeb.CandidateController do
       %{valid?: true} ->
         case UpdateService.update_candidate(job_id, id, candidate, current_candidate_updated_at) do
           {:ok, :updated, candidate} ->
+
+            # remove cache when update is done
+            Cache.match_delete_by_job_id(job_id)
+
             conn
             |> put_status(:ok)
             |> render(:show, candidate: candidate)
             |> tap(fn _ ->
-              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user })
+              columns = Repository.get_columns_by_job_id(job_id)
+              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user, columns: columns })
             end)
 
           {:ok, :not_updated, candidate} ->

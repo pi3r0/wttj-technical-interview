@@ -26,6 +26,9 @@ config :wttj, WttjWeb.Endpoint,
 # In test we don't send emails
 config :wttj, Wttj.Mailer, adapter: Swoosh.Adapters.Test
 
+# Cache ttl
+config :wttj, cache_ttl: :timer.seconds(1)
+
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
@@ -38,3 +41,4 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+

@@ -4,15 +4,30 @@ defmodule WttjWeb.CandidateJSON do
   @doc """
   Renders a list of candidates.
   """
-  def index(%{candidates: candidates}) do
-    %{data: for(candidate <- candidates, do: data(candidate))}
+  def index(%{candidates: candidates, has_more: has_more, columns: columns}) do
+    %{
+      data: %{
+        candidates: for(candidate <- candidates, do: data(candidate)),
+        columns: columns,
+        has_more: has_more
+      }
+    }
+  end
+
+  def index(%{candidates: candidates, has_more: has_more}) do
+    %{
+      data: %{
+        candidates: for(candidate <- candidates, do: data(candidate)),
+        has_more: has_more
+      }
+    }
   end
 
   @doc """
   Renders a single candidate.
   """
   def show(%{candidate: candidate}) do
-    %{data: data(candidate)}
+     %{data: data(candidate)}
   end
 
   defp data(%Candidate{} = candidate) do

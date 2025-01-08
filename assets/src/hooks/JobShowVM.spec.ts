@@ -50,7 +50,11 @@ describe('JobViewVm', () => {
     })
 
     it('should load job and candidates successfully', async () => {
-      mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(mockCandidates)
+      mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce({
+        candidates: mockCandidates,
+        has_more: false,
+        columns: { new: 2, interview: 3 },
+      })
 
       const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
 
@@ -69,13 +73,16 @@ describe('JobViewVm', () => {
             name: 'New',
             candidatesCount: 2,
             candidates: [mockCandidates[2], mockCandidates[0]],
+            lastPosition: mockCandidates[0].position,
+            hasMoreCandidates: false,
           },
           {
             id: 'interview',
             name: 'Interview',
-            candidatesCount: mockCandidates.filter((c: Candidate) => c.status === 'interview')
-              .length,
+            candidatesCount: 3,
             candidates: [mockCandidates[1]],
+            lastPosition: mockCandidates[1].position,
+            hasMoreCandidates: true,
           },
           { id: 'hired', name: 'Hired', candidatesCount: 0, candidates: [] },
           { id: 'rejected', name: 'Rejected', candidatesCount: 0, candidates: [] },
@@ -91,7 +98,7 @@ describe('JobViewVm', () => {
   it('should handle job fetch error', async () => {
     mockHttpClient.get
       .mockRejectedValueOnce(new Error('Job not found'))
-      .mockResolvedValueOnce(mockCandidates)
+      .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
 
@@ -106,7 +113,7 @@ describe('JobViewVm', () => {
 
   it('should handle candidates fetch error', async () => {
     mockHttpClient.get
-      .mockResolvedValueOnce(mockCandidates)
+      .mockResolvedValueOnce(mockJob)
       .mockRejectedValueOnce(new Error('Candidates for this job not found'))
 
     const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
@@ -125,7 +132,7 @@ describe('updateCandidateStatus', () => {
   it('should throw when no job has been found ', async () => {
     mockHttpClient.get
       .mockRejectedValueOnce(new Error('Job not found'))
-      .mockResolvedValueOnce(mockCandidates)
+      .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
@@ -143,7 +150,9 @@ describe('updateCandidateStatus', () => {
   })
 
   it('should throw when no candidate has not been found ', async () => {
-    mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce([])
+    mockHttpClient.get
+      .mockResolvedValueOnce(mockJob)
+      .mockResolvedValueOnce({ candidates: [], has_more: false, columns: {} })
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
@@ -161,7 +170,9 @@ describe('updateCandidateStatus', () => {
   })
 
   it('should do nothing when targeted position and status are the same ', async () => {
-    mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(mockCandidates)
+    mockHttpClient.get
+      .mockResolvedValueOnce(mockJob)
+      .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
@@ -177,7 +188,9 @@ describe('updateCandidateStatus', () => {
   })
 
   it('should update candidate status and position successfully', async () => {
-    mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(mockCandidates)
+    mockHttpClient.get
+      .mockResolvedValueOnce(mockJob)
+      .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     mockHttpClient.put.mockResolvedValueOnce({})
 
@@ -198,7 +211,9 @@ describe('updateCandidateStatus', () => {
   })
 
   it('should handle update error and revert changes', async () => {
-    mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(mockCandidates)
+    mockHttpClient.get
+      .mockResolvedValueOnce(mockJob)
+      .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     mockHttpClient.put.mockRejectedValueOnce(new Error('Update failed'))
 
@@ -225,7 +240,9 @@ describe('updateCandidateStatus', () => {
     it('should set position to 1000 for first item in empty group', async () => {
       const candidates = [{ id: 1, email: 'user1@test.com', status: 'new', position: 1000 }]
 
-      mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(candidates)
+      mockHttpClient.get
+        .mockResolvedValueOnce(mockJob)
+        .mockResolvedValueOnce({ candidates, has_more: false, columns: { new: 1 } })
 
       mockHttpClient.put.mockResolvedValueOnce({})
 
@@ -250,7 +267,9 @@ describe('updateCandidateStatus', () => {
         { id: 3, email: 'user3@test.com', status: 'new', position: 1000 },
       ]
 
-      mockHttpClient.get.mockResolvedValueOnce(mockJob).mockResolvedValueOnce(candidates)
+      mockHttpClient.get
+        .mockResolvedValueOnce(mockJob)
+        .mockResolvedValueOnce({ candidates, has_more: false, columns: { interview: 2, new: 1 } })
 
       mockHttpClient.put.mockResolvedValueOnce({})
 
