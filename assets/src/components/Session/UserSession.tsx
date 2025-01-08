@@ -86,7 +86,7 @@ function UserSession({ isConnected, handleConnection }: Props) {
               </Text>
               <Flex direction="column" gap={16}>
                 <Field label="Pick an username" error={userFieldError} required>
-                  <InputText placeholder="funnyDude" onChange={handleUserNameChange} />
+                  <InputText placeholder="michael_scott" onChange={handleUserNameChange} />
                 </Field>
                 <Field label="Pick an avatar" required>
                   <Picker
