@@ -4,11 +4,14 @@ import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
+import { WelcomeLoader } from '@welcome-ui/welcome-loader'
+import { AssetModal, Modal, useModal } from '@welcome-ui/modal'
+
 import { Candidate, Statuses } from '../../interfaces/Candidate'
 import StatusColumnHeader from '../../components/JobShow/StatusColumnHeader/StatusColumnHeader.tsx'
-import './style.scss'
-import ColorPickerModal from '../../components/ColorPickerModal.tsx'
 import CandidateList from '../../components/JobShow/CandidateList'
+import UserSession from '../../components/Session/UserSession.tsx'
+import './style.scss'
 
 function JobShow() {
   const { jobId } = useParams()
@@ -17,9 +20,11 @@ function JobShow() {
   const [draggedOverColumnId, setDraggedOverColumnId] = useState<string | null>(null)
   const [draggedOverRowId, setDraggedOverRowId] = useState<number | null>(null)
 
+  const modal = useModal()
+
   const {
     logged,
-    setUser,
+    connectUser,
     jobName,
     isLoading,
     hasError,
@@ -28,10 +33,6 @@ function JobShow() {
     updateCandidateStatus,
     loadMoreItemsOnColumns,
   } = useJobShowVM(jobId)
-
-  const handleSubmit = (data: { name: string; color: string }) => {
-    setUser(data)
-  }
 
   const handleDragStart = (candidate: Candidate) => {
     setDraggedCandidate(candidate)
@@ -64,15 +65,21 @@ function JobShow() {
 
   return (
     <>
-      <ColorPickerModal isOpen={!logged} onSubmit={handleSubmit} />
+      <Modal ariaLabel="loader" as={AssetModal} store={modal} open={isLoading}>
+        <AssetModal.Content>
+          <WelcomeLoader />
+        </AssetModal.Content>
+      </Modal>
       <Box backgroundColor="neutral-70" p={20} alignItems="center">
-        <Text variant="h5" color="white" m={0}>
-          {jobName}
-        </Text>
+        <Flex direction="row" gap={8}>
+          <Text variant="h5" color="white" m={0}>
+            {jobName}
+          </Text>
+          <Flex grow={1}></Flex>
+          <UserSession isConnected={logged} handleConnection={connectUser} />
+        </Flex>
       </Box>
       <Box p={20}>
-        {isLoading ? <div>Loading...</div> : null}
-
         {hasError ? (
           <div className="error">
             <span> Error: {error}</span>
