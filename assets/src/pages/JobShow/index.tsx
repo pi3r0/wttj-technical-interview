@@ -4,6 +4,7 @@ import { useJobShowVM } from '../../hooks/JobShowVM'
 import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
+import { Toast, toast } from '@welcome-ui/toast'
 import { WelcomeLoader } from '@welcome-ui/welcome-loader'
 import { AssetModal, Modal, useModal } from '@welcome-ui/modal'
 
@@ -11,6 +12,7 @@ import { Candidate, Statuses } from '../../interfaces/Candidate'
 import StatusColumnHeader from '../../components/JobShow/StatusColumnHeader/StatusColumnHeader.tsx'
 import CandidateList from '../../components/JobShow/CandidateList'
 import UserSession from '../../components/Session/UserSession.tsx'
+import CandidateCreation from '../../components/CreateCandidate'
 import './style.scss'
 
 function JobShow() {
@@ -25,6 +27,7 @@ function JobShow() {
   const {
     logged,
     connectUser,
+    user,
     jobName,
     isLoading,
     hasError,
@@ -32,6 +35,7 @@ function JobShow() {
     groupedCandidates,
     updateCandidateStatus,
     loadMoreItemsOnColumns,
+    addCandidate,
   } = useJobShowVM(jobId)
 
   const handleDragStart = (candidate: Candidate) => {
@@ -63,6 +67,18 @@ function JobShow() {
     setDraggedOverRowId(null)
   }
 
+  const newCandidateHasBeenCreatedLocally = (newCandidate: Candidate) => {
+    // Update state
+    addCandidate(newCandidate)
+    // display toast
+    toast(
+      <Toast.Growl variant="success" hasCloseButton={false}>
+        <Toast.Title>Success</Toast.Title>
+        New Candidate {newCandidate.email} has been created on {newCandidate.status} column!
+      </Toast.Growl>
+    )
+  }
+
   return (
     <>
       <Modal ariaLabel="loader" as={AssetModal} store={modal} open={isLoading}>
@@ -76,6 +92,13 @@ function JobShow() {
             {jobName}
           </Text>
           <Flex grow={1}></Flex>
+          <CandidateCreation
+            jobId={jobId}
+            user={user}
+            isConnected={logged}
+            columns={groupedCandidates}
+            candidateHasBeenCreated={newCandidateHasBeenCreatedLocally}
+          />
           <UserSession isConnected={logged} handleConnection={connectUser} />
         </Flex>
       </Box>

@@ -149,6 +149,27 @@ defmodule Wttj.Candidates.RepositoryTest do
     end
   end
 
+  describe "create_candidates/2" do
+    test "create candidate when not exist", %{job1: job1 } do
+      assert {:ok, %Candidate{} } = Repository.create_candidate(job1.id, %{ email: "test@test.com", position: 10, status: :hired })
+    end
+
+    test "raises Ecto.ChangeSet when candidate status is not invalid", %{job1: job1 } do
+      {:error, changeset} = Repository.create_candidate(job1.id, %{email: "test@test.com", position: 10, status: :wrong_status})
+
+      assert %Ecto.Changeset{valid?: false} = changeset
+      assert {"is invalid", _} = changeset.errors[:status]
+    end
+
+    test "raises Ecto.ChangeSet when candidate email already exists", %{job1: job1 } do
+      candidate = candidate_fixture(%{job_id: job1.id})
+
+      assert_raise Ecto.ConstraintError, fn ->
+        Repository.create_candidate(candidate.job_id, %{ email: candidate.email, position: 10, status: :hired } )
+      end
+    end
+  end
+
 
   describe "get_by_id_and_job_id/2" do
     test "returns candidate when exists", %{job1: job1 } do
@@ -163,6 +184,20 @@ defmodule Wttj.Candidates.RepositoryTest do
       assert_raise Ecto.NoResultsError, fn ->
         Repository.get_by_id_and_job_id(1,job1.id )
       end
+    end
+  end
+
+  describe "get_by_email_and_job_id/2" do
+    test "returns candidate when exists", %{job1: job1 } do
+      # Setup: Create a candidate in the database
+      candidate = candidate_fixture(%{job_id: job1.id})
+
+      # Test successful retrieval
+      assert %Candidate{} = Repository.get_by_email_and_job_id(candidate.email, candidate.job_id)
+    end
+
+    test "Return nothing when candidate doesn't exist", %{job1: job1 } do
+      assert nil == Repository.get_by_email_and_job_id("fakeemail@test.com", job1.id)
     end
   end
 
