@@ -23,14 +23,16 @@ interface JobShowState {
   } | null
   candidates: Candidate[]
   columns: Record<string, number>
+  user: { name: string; color: string } | null
 }
 
 const INITIAL_STATE: JobShowState = {
-  isLoading: true,
+  isLoading: false,
   error: null,
   job: null,
   candidates: [],
   columns: {},
+  user: null,
 }
 
 interface EventUpdate {
@@ -84,18 +86,18 @@ const STATUS_POSITIONS: Record<Statuses, number> = {
   rejected: 3,
 }
 
-export const useJobShowVM = (
-  jobId?: string,
-  httpClient: HttpClientPort = http,
-  testUser?: { name: string; color: '#111111' }
-) => {
+export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) => {
   const [state, setState] = useState<JobShowState>(INITIAL_STATE)
-  const [user, setUser] = useState<{ name: string; color: string } | null>(testUser ?? null)
   const [, setConnectionStatus] = useState<'connected' | 'disconnected'>('disconnected')
   const [retryCount, setRetryCount] = useState(0)
   const MAX_RETRY_ATTEMPTS = 3
 
   useEffect(() => {
+    if (!state.user) {
+      // Don't do anything if user is not connected
+      return
+    }
+
     if (!jobId) {
       setState(prev => ({
         ...prev,
@@ -117,6 +119,7 @@ export const useJobShowVM = (
       ])
 
       setState(prevState => ({ ...prevState, isLoading: false }))
+
       if (isRejected(job) || isRejected(result)) {
         setState(prevState => ({
           ...prevState,
@@ -140,7 +143,7 @@ export const useJobShowVM = (
       }
     }
     fetch(jobId).then()
-  }, [jobId, httpClient])
+  }, [jobId, httpClient, state.user])
 
   // SSE Connection handling
   useEffect(() => {
@@ -148,8 +151,11 @@ export const useJobShowVM = (
     if (process.env.NODE_ENV === 'test') {
       return
     }
-
-    if (!jobId) return
+    if (!state.user || !jobId) {
+      // Don't do anything if jobId is null
+      // or user is not connected
+      return
+    }
 
     let eventSource: EventSource | null = null
 
@@ -192,7 +198,7 @@ export const useJobShowVM = (
           }))
 
           // Do not update candidates if it's the same user
-          if (update.user.name === user?.name) {
+          if (update.user.name === state.user?.name) {
             return
           }
 
@@ -236,7 +242,7 @@ export const useJobShowVM = (
       eventSource?.close()
       setConnectionStatus('disconnected')
     }
-  }, [jobId, retryCount, user])
+  }, [jobId, retryCount, state.user])
 
   const groupedCandidates = useMemo(() => {
     const columns = [...COLUMN_DEFINITIONS]
@@ -294,7 +300,7 @@ export const useJobShowVM = (
       throw new Error('Job ID is required')
     }
 
-    if (!user) {
+    if (!state.user) {
       throw new Error('Should be logged')
     }
 
@@ -336,7 +342,7 @@ export const useJobShowVM = (
         newStatus,
         newPosition,
         oldCandidate.updated_at,
-        user
+        state.user
       )
     } catch {
       setState(prevState => ({
@@ -373,10 +379,17 @@ export const useJobShowVM = (
     }
   }
 
+  const connectUser = (user: { name: string; color: string } | null) => {
+    setState(prevState => ({
+      ...prevState,
+      user: user,
+    }))
+  }
+
   return {
-    logged: !!user,
-    userName: user?.name ?? '',
-    userColor: user?.color ?? '#111111',
+    logged: !!state.user,
+    userName: state.user?.name ?? '',
+    userColor: state.user?.color ?? '#111111',
     isLoading: state.isLoading,
     hasError: !!state.error,
     error: state.error ?? '',
@@ -384,6 +397,6 @@ export const useJobShowVM = (
     groupedCandidates,
     updateCandidateStatus,
     loadMoreItemsOnColumns,
-    setUser,
+    connectUser,
   }
 }

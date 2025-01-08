@@ -2011,6 +2011,18 @@
     loupe "^3.1.2"
     tinyrainbow "^1.2.0"
 
+"@welcome-ui/alert@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/alert/-/alert-6.6.0.tgz#c5ebc87c6c3162cf4ddb874fb4eeb76fdf20ec9b"
+  integrity sha512-9kY8yk84XtCcMBFeXicNYm4G2+ULHln1DHuaVpbBc9yMlVojovxQXzjGRle6e0SSkvQNK4Ap84hW7woLBWeg5g==
+  dependencies:
+    "@welcome-ui/box" "^6.1.1"
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/close-button" "^6.6.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/text" "^6.2.0"
+    "@welcome-ui/variant-icon" "^6.5.0"
+
 "@welcome-ui/badge@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/badge/-/badge-6.0.0.tgz#27bb1677ce9f36b101cf693cff8d80e5a8a19483"
@@ -2053,6 +2065,24 @@
     "@welcome-ui/system" "^6.0.0"
     "@welcome-ui/utils" "^6.0.0"
 
+"@welcome-ui/clear-button@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/clear-button/-/clear-button-6.6.0.tgz#4523142bc8be57bfd3a21f970feb8357a5c5cba5"
+  integrity sha512-+Jex5inLuneMZw6XzWvseeh6bRFuqEQrocV3t5Y6wFKWJz1oZUZm+5NxdpBkTbbKZog0yjuUA6a33iSVlN/2XQ==
+  dependencies:
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/icons" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+
+"@welcome-ui/close-button@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/close-button/-/close-button-6.6.0.tgz#f406313dce4fa77610ddfd4e9bbea65fc8bc584e"
+  integrity sha512-KznpjnZOCmfd+f0IDWkemphUCH5OrHwO05tYjbred9OQ6ng8i3eh2JIBvgoy9vu2l8vM9AdVi9M2CTxrKFz/Kg==
+  dependencies:
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/icons" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+
 "@welcome-ui/core@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/core/-/core-6.0.0.tgz#bab5de37019b1af04ad17ed40d50ae1b192ee2f4"
@@ -2061,6 +2091,25 @@
     "@welcome-ui/utils" "^6.0.0"
     ramda "^0.30.1"
 
+"@welcome-ui/field-group@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/field-group/-/field-group-6.5.0.tgz#c826dcf108c367694af91023ae4bb8ccc38d5fd4"
+  integrity sha512-JJDxM4SrZuGBKWMjTSoKZVXgHSjHMRFdLML3b71NtphyIJmW8NH/t48Vw3nH2s1PeUX/h2CE+81bwleQbQGCsg==
+  dependencies:
+    "@welcome-ui/label" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+
+"@welcome-ui/field@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/field/-/field-6.5.0.tgz#44501bfb1da2d727e7dd4bdf4242d1f5c4889b03"
+  integrity sha512-Y53W72zSd7qCW/gli9jBbQhnoEPPWpURcWgncoInF3M1V/fWlT3LyFljSKesXho6dKi31dkxKdWCaffh3o9bLA==
+  dependencies:
+    "@welcome-ui/hint" "^6.1.1"
+    "@welcome-ui/label" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/utils" "^6.4.0"
+    "@welcome-ui/variant-icon" "^6.5.0"
+
 "@welcome-ui/flex@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/flex/-/flex-6.0.0.tgz#f9d5c057faaf12f191e89f6f0b753a2b3f8cc110"
@@ -2068,6 +2117,13 @@
   dependencies:
     "@welcome-ui/box" "^6.0.0"
     "@welcome-ui/system" "^6.0.0"
+
+"@welcome-ui/hint@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/hint/-/hint-6.1.1.tgz#84d60bd5291c65ed44e2184c9c62d9cceb41c8ca"
+  integrity sha512-uDb/L2pPd91qEZp1JW/QCOHiiSoeF7AGi77M0I5KO6OjjAyWbfIqq71gNMbd3ys9LKqZ1wDAnEQATS9JB5XXjg==
+  dependencies:
+    "@welcome-ui/system" "^6.1.1"
 
 "@welcome-ui/icon@^6.0.0":
   version "6.0.0"
@@ -2083,6 +2139,13 @@
   dependencies:
     "@welcome-ui/system" "^6.1.1"
 
+"@welcome-ui/icons.font@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/icons.font/-/icons.font-6.5.0.tgz#8c7505c44c425555d99ec3ce8dcd2a5b0260df44"
+  integrity sha512-2lDR86I/RVwny9hAFYvQGi2sx9EVq/RSVcxJFXteDbJI6QBystC9J8PDvnr00ntxr4EQ54Dt+pjgouTIVvEsBw==
+  dependencies:
+    "@welcome-ui/icon" "^6.1.1"
+
 "@welcome-ui/icons@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/icons/-/icons-6.0.0.tgz#911e47e1c8a368e8a21d9b96699ef1721101e796"
@@ -2096,6 +2159,16 @@
   integrity sha512-gbobfjeMxv3HDV9sff7Q4tbI5+5z62JSi0sLl7Kx7qJwvyYWJrmgoNBSF8rBZlDJdg5t70MWQ3pzGORViqjJ3Q==
   dependencies:
     "@welcome-ui/icon" "^6.1.1"
+
+"@welcome-ui/input-text@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/input-text/-/input-text-6.6.0.tgz#8276224408d3e1ec90e954b8da4c0cb3bc006ed9"
+  integrity sha512-eySCnDaYPCuR+QgEWyfT5KGOWxyhtNxusMdFpT8cB1IH0j9QIrbMli1PfImGwqIlDDKXCekkP1tqpy+egrdVog==
+  dependencies:
+    "@welcome-ui/clear-button" "^6.6.0"
+    "@welcome-ui/field" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/utils" "^6.4.0"
 
 "@welcome-ui/label@^6.5.0":
   version "6.5.0"
@@ -2125,6 +2198,33 @@
     "@welcome-ui/shape" "^6.4.0"
     "@welcome-ui/system" "^6.1.1"
 
+"@welcome-ui/modal@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/modal/-/modal-6.6.0.tgz#3a5ed6454f82a54e6a136f7d7e77c9becfadc1ce"
+  integrity sha512-jySN6tUx6Wds/ozVbcS/dJeyMjNzwAwxzhm/Ixf+oIihVZwhEzf0w7I1ZgU+Z7CWPaABAvYrXje13sNczpoRHg==
+  dependencies:
+    "@ariakit/react" "0.4.15"
+    "@welcome-ui/box" "^6.1.1"
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/close-button" "^6.6.0"
+    "@welcome-ui/icons.font" "^6.5.0"
+    "@welcome-ui/shape" "^6.4.0"
+    "@welcome-ui/swiper" "^6.6.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/text" "^6.2.0"
+    "@welcome-ui/utils" "^6.4.0"
+
+"@welcome-ui/picker@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/picker/-/picker-6.6.0.tgz#bdf3a3a452d0a1c655f784ac89e3e1ceb7645198"
+  integrity sha512-GsgTUefeysXwjosUwfhwujVTPR9EtfeB8VGaAKFb6l++yMvIQjtKz+AcmhZF21G3WpK1VXoxVC/q6K7mDREReQ==
+  dependencies:
+    "@ariakit/react" "0.4.15"
+    "@welcome-ui/box" "^6.1.1"
+    "@welcome-ui/field-group" "^6.5.0"
+    "@welcome-ui/label" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+
 "@welcome-ui/shape@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/shape/-/shape-6.0.0.tgz#810864236abdc7e2e98165d8bc89338e73be1398"
@@ -2142,6 +2242,17 @@
     "@welcome-ui/box" "^6.1.1"
     "@welcome-ui/system" "^6.1.1"
     "@welcome-ui/utils" "^6.4.0"
+
+"@welcome-ui/swiper@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/swiper/-/swiper-6.6.0.tgz#939b0ff9cf6513ef72ce21010484148ea0c57590"
+  integrity sha512-qgFk1Ipw6JSEZVrPFfeWM07PuE9l9z6x1M9782oNjgptQeFqZgjaqtqSOZ16aPOVV04CA+c4VT/NL4QAy5N+uw==
+  dependencies:
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/icons.font" "^6.5.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/utils" "^6.4.0"
+    lodash.debounce "^4.0.8"
 
 "@welcome-ui/system@^6.0.0":
   version "6.0.0"
@@ -2171,6 +2282,27 @@
   dependencies:
     "@welcome-ui/system" "^6.0.0"
 
+"@welcome-ui/text@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/text/-/text-6.2.0.tgz#03a132078159b5137698599e43799cb995737aad"
+  integrity sha512-lRhe7aZ7EHaUXdtcS+wkSs4I4+llDGSvK5TXyteK6uVitpFrQYX2gyQLIk5ad8GhyNR9ThnUyye7BLjAdMs2rA==
+  dependencies:
+    "@welcome-ui/system" "^6.1.1"
+
+"@welcome-ui/toast@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/toast/-/toast-6.6.0.tgz#ca507cc788edd985b0e7f1c1dc662f0e0ff7fade"
+  integrity sha512-6e67DWPPIRC7ZoNrflgY+l8tYQaxPvFqI7RxBCFOg0jH8pJgrh6bsCElsJ29yL7qvl8tSI3SgHVYP2/q607I9A==
+  dependencies:
+    "@welcome-ui/alert" "^6.6.0"
+    "@welcome-ui/box" "^6.1.1"
+    "@welcome-ui/button" "^6.6.0"
+    "@welcome-ui/close-button" "^6.6.0"
+    "@welcome-ui/system" "^6.1.1"
+    "@welcome-ui/text" "^6.2.0"
+    "@welcome-ui/utils" "^6.4.0"
+    react-hot-toast "^2.4.1"
+
 "@welcome-ui/universal-link@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@welcome-ui/universal-link/-/universal-link-6.0.0.tgz#58b5518257dcb13afe399db4fadb41c9495cd913"
@@ -2195,6 +2327,15 @@
   dependencies:
     "@welcome-ui/icons" "^6.5.0"
     "@welcome-ui/system" "^6.1.1"
+
+"@welcome-ui/welcome-loader@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@welcome-ui/welcome-loader/-/welcome-loader-6.4.0.tgz#815157afa75d60fbad27d65c8880e92b7f8e5575"
+  integrity sha512-Abju/vTtd92l5/3mwi+9ITTv1NN2L1jXtF8B/do3VSzoSUwIR3wNQafJrDrSbC8PDa+pMnJElD+onaYykKMLdg==
+  dependencies:
+    "@welcome-ui/box" "^6.1.1"
+    "@welcome-ui/system" "^6.1.1"
+    lottie-light-react "^2.4.0"
 
 "@xstyled/core@^3.8.1":
   version "3.8.1"
@@ -2763,7 +2904,7 @@ cssstyle@^4.1.0:
   dependencies:
     rrweb-cssom "^0.7.1"
 
-csstype@^3.0.2, csstype@^3.1.1:
+csstype@^3.0.2, csstype@^3.1.1, csstype@^3.1.3:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
   integrity sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==
@@ -3729,6 +3870,11 @@ globjoin@^0.1.4:
   resolved "https://registry.yarnpkg.com/globjoin/-/globjoin-0.1.4.tgz#2f4494ac8919e3767c5cbb691e9f463324285d43"
   integrity sha512-xYfnw62CKG8nLkZBfWbhWwDw02CHty86jfPcc2cr3ZfeuK9ysoVPPEUxf21bAD/rWAgk52SuBrLJlefNy8mvFg==
 
+goober@^2.1.16:
+  version "2.1.16"
+  resolved "https://registry.yarnpkg.com/goober/-/goober-2.1.16.tgz#7d548eb9b83ff0988d102be71f271ca8f9c82a95"
+  integrity sha512-erjk19y1U33+XAMe1VTvIONHYoSqE4iS7BYUZfHaqeohLmnC0FdxEh7rQU+6MZ4OajItzjZFSRtVANrQwNq6/g==
+
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
@@ -4277,6 +4423,18 @@ loose-envify@^1.1.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
+lottie-light-react@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/lottie-light-react/-/lottie-light-react-2.4.0.tgz#cb18e1a1cb36c87778027feac9746b0cad7c6295"
+  integrity sha512-TXJOnyqEc6ev9/um8Xkxve5EVcgCX2pi1olWc8jj+81qaPyFBA+VxHIc2Ojl42IqeAiKhGHz098ztQOIImJcyg==
+  dependencies:
+    lottie-web "^5.10.2"
+
+lottie-web@^5.10.2:
+  version "5.12.2"
+  resolved "https://registry.yarnpkg.com/lottie-web/-/lottie-web-5.12.2.tgz#579ca9fe6d3fd9e352571edd3c0be162492f68e5"
+  integrity sha512-uvhvYPC8kGPjXT3MyKMrL3JitEAmDMp30lVkuq/590Mw9ok6pWcFCwXJveo0t5uqYw1UREQHofD+jVpdjBv8wg==
+
 loupe@^3.1.0, loupe@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/loupe/-/loupe-3.1.2.tgz#c86e0696804a02218f2206124c45d8b15291a240"
@@ -4702,6 +4860,14 @@ react-error-boundary@^3.1.0:
   integrity sha512-uM9uPzZJTF6wRQORmSrvOIgt4lJ9MC1sNgEOj2XGsDTRE4kmpWxg7ENK9EWNKJRMAOY9z0MuF4yIfl6gp4sotA==
   dependencies:
     "@babel/runtime" "^7.12.5"
+
+react-hot-toast@^2.4.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/react-hot-toast/-/react-hot-toast-2.5.1.tgz#fcb182d96353c803ee5af82e96c806d5eaa4dcfa"
+  integrity sha512-54Gq1ZD1JbmAb4psp9bvFHjS7lje+8ubboUmvKZkCsQBLH6AOpZ9JemfRvIdHcfb9AZXRaFLrb3qUobGYDJhFQ==
+  dependencies:
+    csstype "^3.1.3"
+    goober "^2.1.16"
 
 react-is@^16.13.1, react-is@^16.7.0:
   version "16.13.1"

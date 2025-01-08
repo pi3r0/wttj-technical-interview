@@ -10,6 +10,11 @@ const mockJob = {
   name: 'Software Engineer',
 }
 
+const mockSession = {
+  name: 'JohnDoe',
+  color: '#76dc23',
+}
+
 const mockCandidates: Candidate[] = [
   { id: 1, email: 'user1@test.com', status: 'new', position: 2000, updated_at: new Date() },
   { id: 2, email: 'user2@test.com', status: 'interview', position: 1000, updated_at: new Date() },
@@ -30,21 +35,14 @@ describe('JobViewVm', () => {
     it('should return error when jobId is not provided', async () => {
       const { result } = renderHook(() => useJobShowVM(undefined, mockHttpClient))
 
+      await act(async () => {
+        return result.current.connectUser(mockSession)
+      })
+
       expect(result.current).toMatchObject({
         isLoading: false,
         hasError: true,
         error: 'Job ID is required',
-        jobName: 'Not Found',
-      })
-    })
-
-    it('Should return load state', () => {
-      const { result } = renderHook(() => useJobShowVM('1', mockHttpClient))
-
-      expect(result.current).toMatchObject({
-        isLoading: true,
-        hasError: false,
-        error: '',
         jobName: 'Not Found',
       })
     })
@@ -58,7 +56,7 @@ describe('JobViewVm', () => {
 
       const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
 
-      expect(result.current.isLoading).toBe(true)
+      result.current.connectUser(mockSession)
 
       await waitForNextUpdate()
 
@@ -101,6 +99,7 @@ describe('JobViewVm', () => {
       .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
     const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -117,6 +116,7 @@ describe('JobViewVm', () => {
       .mockRejectedValueOnce(new Error('Candidates for this job not found'))
 
     const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -134,9 +134,8 @@ describe('updateCandidateStatus', () => {
       .mockRejectedValueOnce(new Error('Job not found'))
       .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-    )
+    const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -154,9 +153,8 @@ describe('updateCandidateStatus', () => {
       .mockResolvedValueOnce(mockJob)
       .mockResolvedValueOnce({ candidates: [], has_more: false, columns: {} })
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-    )
+    const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -174,9 +172,8 @@ describe('updateCandidateStatus', () => {
       .mockResolvedValueOnce(mockJob)
       .mockResolvedValueOnce({ candidates: mockCandidates, has_more: false, columns: { new: 1 } })
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-    )
+    const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -194,9 +191,8 @@ describe('updateCandidateStatus', () => {
 
     mockHttpClient.put.mockResolvedValueOnce({})
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-    )
+    const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -217,9 +213,8 @@ describe('updateCandidateStatus', () => {
 
     mockHttpClient.put.mockRejectedValueOnce(new Error('Update failed'))
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-    )
+    const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+    result.current.connectUser(mockSession)
 
     await waitForNextUpdate()
 
@@ -244,11 +239,8 @@ describe('updateCandidateStatus', () => {
         .mockResolvedValueOnce(mockJob)
         .mockResolvedValueOnce({ candidates, has_more: false, columns: { new: 1 } })
 
-      mockHttpClient.put.mockResolvedValueOnce({})
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-      )
+      const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+      result.current.connectUser(mockSession)
 
       await waitForNextUpdate()
 
@@ -273,9 +265,8 @@ describe('updateCandidateStatus', () => {
 
       mockHttpClient.put.mockResolvedValueOnce({})
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useJobShowVM('1', mockHttpClient, { name: 'testUser', color: '#111111' })
-      )
+      const { result, waitForNextUpdate } = renderHook(() => useJobShowVM('1', mockHttpClient))
+      result.current.connectUser(mockSession)
 
       await waitForNextUpdate()
 
