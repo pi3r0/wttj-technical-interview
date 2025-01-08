@@ -56,9 +56,7 @@ export function useCandidateCreateVM(
     }))
   }
   const columnHasChanged = (newValue: string) => {
-    console.log('columnHasChanged:', newValue)
     if (!isValidStatus(newValue)) {
-      console.log('columnHasChanged:', isValidStatus(newValue))
       // Should never appear but anticipate
       setState(prevState => ({
         ...prevState,
@@ -71,7 +69,7 @@ export function useCandidateCreateVM(
     setState(prevState => ({
       ...prevState,
       status: newValue,
-      statusError: null,
+      statusError: '',
     }))
   }
 
