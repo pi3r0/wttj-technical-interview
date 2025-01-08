@@ -71,10 +71,37 @@ defmodule Wttj.Candidates.Repository do
     :status => String.t(),
     :position => float()
   }
+
+  @type create_props :: %{
+                          :email => String.t(),
+                          :status => String.t(),
+                          :position => float()
+                        }
+
+  @impl true
+  @spec create_candidate(String.t(), create_props()) :: Candidate.t()
+  def create_candidate(job_id, props) do
+    attrs = props
+    |> Map.put("job_id", job_id)
+    |> Enum.map(fn {k, v} -> {to_string(k), v} end)
+    |> Enum.into(%{})
+
+    %Candidate{}
+    |> Candidate.changeset(attrs)
+    |> Repo.insert()
+  end
+
   @impl true
   @spec get_by_id_and_job_id(integer, String.t()) :: Candidate.t()
   def get_by_id_and_job_id(id, job_id) do
     Repo.get_by!(Candidate, id: id, job_id: job_id)
+  end
+
+  # TODO: add migration with a new index
+  @impl true
+  @spec get_by_email_and_job_id(integer, String.t()) :: Candidate.t()
+  def get_by_email_and_job_id(email, job_id) do
+    Repo.get_by(Candidate, job_id: job_id, email: email)
   end
 
   @impl true
