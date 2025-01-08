@@ -35,7 +35,11 @@ const INITIAL_STATE: JobShowState = {
 
 interface EventUpdate {
   type: 'candidate_updated'
-  data: { candidate: Candidate; user: { name: string; color: string } }
+  data: {
+    candidate: Candidate
+    user: { name: string; color: string }
+    columns: Record<string, number>
+  }
 }
 
 const COLUMN_DEFINITIONS: Column[] = [
@@ -181,8 +185,13 @@ export const useJobShowVM = (
         try {
           const update: EventUpdate['data'] = JSON.parse(event.data)
 
-          //TODO: need to refresh the column number after update
-          // Do not update if it's the same user
+          // Update the columns after each updates
+          setState(prevState => ({
+            ...prevState,
+            columns: update.columns,
+          }))
+
+          // Do not update candidates if it's the same user
           if (update.user.name === user?.name) {
             return
           }

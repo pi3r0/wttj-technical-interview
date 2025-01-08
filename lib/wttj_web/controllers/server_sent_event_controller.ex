@@ -30,6 +30,10 @@ defmodule WttjWeb.ServerSentEventController do
           {:error, :closed} ->
             # Client disconnected
             conn
+          {:error, "closed"} ->
+            # client disconnected
+            conn
+          error -> conn
         end
     after
       # Optional heartbeat to keep connection alive
@@ -37,6 +41,8 @@ defmodule WttjWeb.ServerSentEventController do
         case chunk(conn, ":keepalive\n\n") do
           {:ok, conn} -> stream_updates(conn)
           {:error, :closed} -> conn
+          {:error, "closed"} -> conn
+          error -> conn
         end
     end
   end

@@ -113,7 +113,8 @@ defmodule WttjWeb.CandidateController do
             |> put_status(:ok)
             |> render(:show, candidate: candidate)
             |> tap(fn _ ->
-              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user })
+              columns = Repository.get_columns_by_job_id(job_id)
+              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user, columns: columns })
             end)
 
           {:ok, :not_updated, candidate} ->
