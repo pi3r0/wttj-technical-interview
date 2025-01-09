@@ -2,6 +2,7 @@ export interface HttpClientPort {
   get<T>(url: string, params?: unknown): Promise<T>
 
   put<T>(url: string, data?: unknown): Promise<T>
+  post<T>(url: string, data?: unknown): Promise<T>
 }
 
 class Http implements HttpClientPort {
@@ -21,7 +22,7 @@ class Http implements HttpClientPort {
     const response = await fetch(fullUrl, { headers, method, body: raw })
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`${response.status}`)
     }
 
     const { data } = await response.json()
@@ -30,6 +31,10 @@ class Http implements HttpClientPort {
 
   async get<T>(url: string, params: Record<string, string> = {}): Promise<T> {
     return this.apiRequest('GET', url, params)
+  }
+
+  async post<T>(url: string, data: Record<string, string>): Promise<T> {
+    return this.apiRequest('POST', url, {}, data)
   }
 
   async put<T>(url: string, data: Record<string, string>): Promise<T> {

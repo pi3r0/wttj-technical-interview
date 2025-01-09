@@ -31,10 +31,9 @@ defmodule Wttj.Validators.CandidateUpdate do
     |> cast(params, [:position, :status])
     |> validate_required([:position, :status])
     |> validate_number(:position, greater_than_or_equal_to: 0)
-    |> validate_inclusion(:status, @valid_statuses)  # Add other valid statuses as needed
+    |> validate_inclusion(:status, @valid_statuses)
   end
 
-  # User embedded changeset
   defp user_changeset(struct, params) do
     struct
     |> cast(params, [:name, :color])
@@ -43,12 +42,33 @@ defmodule Wttj.Validators.CandidateUpdate do
   end
 end
 
+defmodule Wttj.Validators.CandidateCreate do
+    use Ecto.Schema
+    import Ecto.Changeset
+
+    @valid_statuses ["new", "interview", "hired", "rejected"]
+    # Embedded schemas
+    embedded_schema do
+      field :email, :string
+      field :status, :string
+    end
+
+    def changeset(struct \\ %__MODULE__{}, params) do
+      struct
+      |> cast(params, [:status, :email])
+      |> validate_required([:status, :email])
+      |> validate_inclusion(:status, @valid_statuses)
+      |> validate_format(:email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+    end
+end
+
 defmodule WttjWeb.CandidateController do
   use WttjWeb, :controller
 
   alias Wttj.Candidates
   alias Wttj.Candidates.Repository
   alias Wttj.Candidates.UpdateService
+  alias Wttj.Candidates.CreateService
   alias WttjWeb.JobUpdateBroadcast
   alias Wttj.Candidates.Cache
 
@@ -95,6 +115,42 @@ defmodule WttjWeb.CandidateController do
     render(conn, :show, candidate: candidate)
   end
 
+  def create(conn,  %{"job_id" => job_id, "props" => props, "user" => user}) do
+    case Wttj.Validators.CandidateCreate.changeset(props) do
+      %{valid?: true} ->
+        case CreateService.create_candidate(job_id, props) do
+          {:ok, candidate} ->
+
+            # remove cache when update is done
+            Cache.match_delete_by_job_id(job_id)
+
+            conn
+            |> put_status(:ok)
+            |> render(:show, candidate: candidate)
+            |> tap(fn _ ->
+              columns = Repository.get_columns_by_job_id(job_id)
+              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user, columns: columns, kind: "add" })
+            end)
+          {:error, :candidate_already_exists} ->
+            conn
+            |> put_status(:conflict)
+            |> put_view(json: WttjWeb.ErrorJSON)
+            |> render(:'409')
+          {:error, _} ->
+            conn
+            |> put_status(:internal_error)
+            |> put_view(json: WttjWeb.ErrorJSON)
+            |> render(:'500')
+        end
+      %{valid?: false} ->
+        conn
+        |> put_status(:bad_request)
+        |> put_view(json: WttjWeb.ErrorJSON)
+        |> render(:'400')
+    end
+
+  end
+
   def update(conn, %{"job_id" => job_id, "id" => id, "candidate" => candidate, "current_candidate_updated_at" => current_candidate_updated_at, "user" => user }) do
     validation_params = %{
       "candidate" => candidate,
@@ -114,7 +170,7 @@ defmodule WttjWeb.CandidateController do
             |> render(:show, candidate: candidate)
             |> tap(fn _ ->
               columns = Repository.get_columns_by_job_id(job_id)
-              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user, columns: columns })
+              JobUpdateBroadcast.broadcast_update(job_id, :candidate_updated, %{ candidate: candidate, user: user, columns: columns, kind: "updated" })
             end)
 
           {:ok, :not_updated, candidate} ->

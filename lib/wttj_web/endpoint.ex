@@ -15,14 +15,14 @@ defmodule WttjWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  plug CORSPlug
+
   # Serve at "/" the static files from "priv/static" directory.
-  #
-  # You should set gzip to true if you are running phx.digest
-  # when deploying your static files in production.
   plug Plug.Static,
-    at: "/",
-    from: :wttj,
-    gzip: false,
+    at: "/front",
+    from: {:wttj, "priv/static/front"},
+    encodings: [{"gzip", ".gz"}],
+    cache_control_for_etags: "public, max-age = 31_536_00",
     only: WttjWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the

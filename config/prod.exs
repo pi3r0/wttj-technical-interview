@@ -16,5 +16,12 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Add cors plugin, don't forget to update the origin with the domain name
+config :cors_plug,
+       origin: ["*"],
+       max_age: 86400,
+       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+

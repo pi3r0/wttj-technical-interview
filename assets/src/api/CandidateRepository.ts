@@ -9,6 +9,11 @@ export interface GetAllForIdResult {
 }
 
 export interface CandidateRepositoryPort {
+  createCandidate(
+    jobId: string,
+    props: { email: string; status: string },
+    user: { name: string; color: string }
+  ): Promise<Candidate>
   getAllForJobId(jobId: string, status?: string, lastPosition?: number): Promise<GetAllForIdResult>
   getOneInJobId(jobId: string, candidateId: string): Promise<Candidate>
   updateCandidate(
@@ -23,6 +28,14 @@ export interface CandidateRepositoryPort {
 
 export class CandidateRepository implements CandidateRepositoryPort {
   constructor(private readonly httpClient: HttpClientPort = http) {}
+
+  createCandidate(
+    jobId: string,
+    props: { email: string; status: string },
+    user: { name: string; color: string }
+  ): Promise<Candidate> {
+    return this.httpClient.post<Candidate>(`${baseURL}/jobs/${jobId}/candidates`, { props, user })
+  }
 
   getAllForJobId(
     jobId: string,

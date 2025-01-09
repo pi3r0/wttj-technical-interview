@@ -24,6 +24,7 @@ const mockCandidates: Candidate[] = [
 const mockHttpClient = {
   get: vi.fn(),
   put: vi.fn(),
+  post: vi.fn(),
 } satisfies HttpClientPort
 
 describe('JobViewVm', () => {

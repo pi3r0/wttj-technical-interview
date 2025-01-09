@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { isRejected, isFulfilled } from '../utils/promise.ts'
 import { CandidateRepository } from '../api/CandidateRepository'
 import { JobRepository } from '../api/JobRepository'
 import { Candidate, Statuses } from '../interfaces/Candidate'
 import { http, HttpClientPort } from '../drivers/http.ts'
+import { calculateNewPosition } from '../utils/position.ts'
 
-interface Column {
+export interface Column {
   id: Statuses
   name: string
   candidatesCount: number
@@ -38,6 +39,7 @@ const INITIAL_STATE: JobShowState = {
 interface EventUpdate {
   type: 'candidate_updated'
   data: {
+    kind: 'add' | 'update'
     candidate: Candidate
     user: { name: string; color: string }
     columns: Record<string, number>
@@ -145,6 +147,62 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
     fetch(jobId).then()
   }, [jobId, httpClient, state.user])
 
+  const handleUpdateFromSSE = (update: EventUpdate['data']) => {
+    try {
+      // Update the columns after each updates
+      setState(prevState => ({
+        ...prevState,
+        columns: update.columns,
+      }))
+
+      // Do not update candidates if it's the same user
+      if (update.user.name === state.user?.name) {
+        return
+      }
+
+      // We only need to update if the updated candidate is on the visible area
+      // of the current session
+      const isUpdateNeeded = (newPosition: number, visibleCandidatesInStatus: Candidate[]) => {
+        for (const candidate of visibleCandidatesInStatus) {
+          if (candidate.position >= newPosition) return true
+        }
+        return visibleCandidatesInStatus.length <= 0
+      }
+
+      // check if position is contained in visible position
+      if (
+        !isUpdateNeeded(
+          update.candidate.position,
+          state.candidates.filter(c => c.status === update.candidate.status)
+        )
+      ) {
+        return
+      }
+
+      if (update.kind === 'add') {
+        setState(prevState => ({
+          ...prevState,
+          candidates: prevState.candidates.concat(update.candidate),
+        }))
+      } else if (update.kind === 'update') {
+        // Depending on the state, we should update existing if already locally
+        // Or added because it should be visible due to last cursor user has
+        const alreadyOnMyList = state.candidates.find(c => c.id === update.candidate.id)
+        setState(prevState => ({
+          ...prevState,
+          candidates: alreadyOnMyList
+            ? prevState.candidates.map(candidate =>
+                candidate.id === update.candidate.id
+                  ? { ...candidate, ...update.candidate }
+                  : candidate
+              )
+            : prevState.candidates.concat(update.candidate),
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to process update:', error)
+    }
+  }
   // SSE Connection handling
   useEffect(() => {
     // Avoid to be able to test the VM
@@ -188,50 +246,7 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
 
       // Handle incoming SSE updates
       eventSource.addEventListener('candidate_updated', event => {
-        try {
-          const update: EventUpdate['data'] = JSON.parse(event.data)
-
-          // Update the columns after each updates
-          setState(prevState => ({
-            ...prevState,
-            columns: update.columns,
-          }))
-
-          // Do not update candidates if it's the same user
-          if (update.user.name === state.user?.name) {
-            return
-          }
-
-          // We only need to update if the updated candidate is on the visible area
-          // of the current session
-          const isUpdateNeeded = (newPosition: number, visibleCandidatesInStatus: Candidate[]) => {
-            for (const candidate of visibleCandidatesInStatus) {
-              if (candidate.position >= newPosition) return true
-            }
-            return visibleCandidatesInStatus.length <= 0
-          }
-
-          // check if position is contained in visible position
-          if (
-            !isUpdateNeeded(
-              update.candidate.position,
-              state.candidates.filter(c => c.status === update.candidate.status)
-            )
-          ) {
-            return
-          }
-
-          setState(prevState => ({
-            ...prevState,
-            candidates: prevState.candidates.map(candidate =>
-              candidate.id === update.candidate.id
-                ? { ...candidate, ...update.candidate }
-                : candidate
-            ),
-          }))
-        } catch (error) {
-          console.error('Failed to process update:', error)
-        }
+        handleUpdateFromSSE(JSON.parse(event.data))
       })
     }
 
@@ -274,21 +289,6 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
 
     return columns
   }, [state.candidates, state.columns])
-
-  const calculateNewPosition = useCallback(
-    (targetIndex: number, candidatesInColumn: Candidate[]): number => {
-      if (candidatesInColumn.length === 0) return 1000
-
-      const prevPosition =
-        targetIndex > 0 ? (candidatesInColumn[targetIndex - 1]?.position ?? 0) : 0
-
-      const nextPosition = candidatesInColumn[targetIndex]?.position
-
-      if (!nextPosition) return prevPosition + 1000
-      return prevPosition + (nextPosition - prevPosition) / 2
-    },
-    []
-  )
 
   const updateCandidateStatus = async (
     candidateId: number,
@@ -357,6 +357,13 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
     }
   }
 
+  const addCandidate = (newCandidate: Candidate) => {
+    setState(prevState => ({
+      ...prevState,
+      candidates: prevState.candidates.concat(newCandidate),
+    }))
+  }
+
   const loadMoreItemsOnColumns = async (status: string, lastPosition: number) => {
     if (!state.job) {
       return
@@ -388,6 +395,7 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
 
   return {
     logged: !!state.user,
+    user: state.user,
     userName: state.user?.name ?? '',
     userColor: state.user?.color ?? '#111111',
     isLoading: state.isLoading,
@@ -398,5 +406,6 @@ export const useJobShowVM = (jobId?: string, httpClient: HttpClientPort = http) 
     updateCandidateStatus,
     loadMoreItemsOnColumns,
     connectUser,
+    addCandidate,
   }
 }
