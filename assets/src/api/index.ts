@@ -1,8 +1,9 @@
 import { Job } from '../interfaces/Job'
 import { Candidate } from '../interfaces/Candidate'
 
-export const baseURL = 'http://localhost:4000/api'
+export const baseURL = '/api'
 
+// Legacy
 export const getJobs = async (): Promise<Job[]> => {
   const response = await fetch(`http://localhost:4000/api/jobs`)
   const { data } = await response.json()

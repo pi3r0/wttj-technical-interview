@@ -4,7 +4,7 @@ import Config
 config :wttj, Wttj.Repo,
   username: "postgres",
   password: "postgres",
-  hostname: "localhost",
+  hostname: "127.0.0.1",
   database: "wttj_local",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
@@ -19,7 +19,7 @@ config :wttj, Wttj.Repo,
 config :wttj, WttjWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {0, 0, 0, 0}, port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -80,3 +80,9 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Allow * for dev runtime
+config :cors_plug,
+  origin: ["*"],
+  max_age: 86400,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]

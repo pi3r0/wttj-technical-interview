@@ -28,13 +28,18 @@ Follow the [getting started](#getting-started) process to be able to run it prop
 To run this project, you will need to postgres instance up and running.\
 If you don't have this, create a local docker image
 ```bash 
-docker run
+docker run \
     --name wttj_postgres_db \
     -p 5432:5432 \
     -e POSTGRES_USER=postgres \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=wttj_local \
     -d postgres
+    
+    
+    docker run wttj_test_docker \
+    -p 4000:4000 \
+    
 ```
 ### Run Phoenix server
 
@@ -66,7 +71,29 @@ yarn
 yarn dev
 ```
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Now you can visit [`localhost:4000`](http://localhost:5173) from your browser.
+
+### Docker
+You can run directly with a docker image
+
+1. Build
+`SECRET_KEY_BASE`: select your secret
+`DATABASE_URL`: postgres access, exemple for a local database`postgres:postgres@host.docker.internal:5432/wttj_local`
+`PHX_HOST`: host exemple 0.0.0.0 for local
+
+```bash 
+docker build -t wttj_docker_app . \    
+  --build-arg SECRET_KEY_BASE=#YOU_SECRET_HERE# \
+  --build-arg DATABASE_URL=#DATABASE_URL# \
+  --build-arg PHX_HOST=#HOST
+```
+
+2. Run
+Run with
+
+```bash
+docker run -p 4000:4000 wttj_docker_app
+```
 
 ## tests
 

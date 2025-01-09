@@ -57,7 +57,8 @@ defmodule Wttj.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:mox, "~> 1.0", only: :test}
+      {:mox, "~> 1.0", only: :test},
+      {:cors_plug, "~> 3.0"}
     ]
   end
 
