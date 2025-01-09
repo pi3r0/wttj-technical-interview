@@ -33,9 +33,7 @@ defmodule WttjWeb.Router do
   end
 
   scope "/", WttjWeb do
-    pipe_through :browser
-
-    get "/*path", PageController, :home
+    get "/*path", PageController, :index, constraints: %{path: ~r/^(?!front\/assets).*/}
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

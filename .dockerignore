@@ -1,0 +1,8 @@
+/.git
+/.github
+/.idea
+/_build
+/deps
+/test
+/assets/dist
+/assets/node_modules

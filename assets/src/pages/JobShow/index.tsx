@@ -81,7 +81,7 @@ function JobShow() {
 
   return (
     <>
-      <Modal ariaLabel="loader" as={AssetModal} store={modal} open={isLoading}>
+      <Modal ariaLabel="loader" store={modal} open={isLoading}>
         <AssetModal.Content>
           <WelcomeLoader />
         </AssetModal.Content>
