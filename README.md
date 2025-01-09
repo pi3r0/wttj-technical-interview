@@ -88,6 +88,14 @@ docker build -t wttj_docker_app . \
   --build-arg PHX_HOST=#HOST
 ```
 
+quick run for local purpose
+```bash 
+docker build -t wttj_docker_app . \    
+   --build-arg SECRET_KEY_BASE=gqrNUYcQTT1euSJkcTf2iSKBwz9uhmnA5V2XyUoNPUVf2rB0AEbsfy6c0xXg//WA \
+   --build-arg DATABASE_URL=postgres:postgres@host.docker.internal:5432/wttj_local \
+   --build-arg PHX_HOST=0.0.0.0
+```
+
 2. Run
 Run with
 
