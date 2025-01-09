@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const assetsUrl = process.env.ASSETS_URL || '/front'
+const assetsUrl = process.env.NODE_ENV === 'production' ? '/front/' : '/'
 
 export default defineConfig({
   base: assetsUrl,
