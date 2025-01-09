@@ -22,7 +22,7 @@ Follow the [Getting Started](#getting-started) section to run the project locall
 ## Requirements
 - Elixir 1.17.2-otp-27
 - Erlang 27.0.1
-- PostgreSQL
+- PostgresSQL
 - Node.js 20.11.0
 - Yarn
 
